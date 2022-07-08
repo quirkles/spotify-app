@@ -1,5 +1,6 @@
-export const favoriteFruits = ["apple", "strawberry", "orange"];
+import { createServer } from "./server";
+import { CONFIG } from "./config";
 
-export function addFruit(fruit: string) {
-  favoriteFruits.push(fruit);
-}
+const server = createServer();
+
+server.listen(CONFIG.port);
