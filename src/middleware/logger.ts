@@ -1,10 +1,11 @@
 import * as path from "path";
 
-import Koa from "koa";
+import Koa, { ExtendableContext } from "koa";
 import pino, { TransportTargetOptions } from "pino";
 
 import { CONFIG } from "../config";
 import { v4 } from "uuid";
+import { EnhancedContext } from "./index";
 
 const environment = CONFIG.environment;
 
@@ -38,6 +39,7 @@ if (environment === "development") {
 const baseLogger = pino(
   {
     name: "app-logger",
+    level: "trace",
   },
   pino.transport({
     targets: logTargets,
@@ -45,7 +47,7 @@ const baseLogger = pino(
 );
 
 export async function withLogger(
-  ctx: Koa.ExtendableContext & { correlationId: string; logger: pino.Logger },
+  ctx: Koa.ExtendableContext & ExtendableContext & EnhancedContext,
   next: Koa.Next
 ) {
   ctx.logger = baseLogger.child({

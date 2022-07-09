@@ -4,6 +4,8 @@ import { stringify } from "querystring";
 import { SECRETS } from "../secrets";
 import Router from "@koa/router";
 import axios, { AxiosRequestConfig } from "axios";
+import { EnhancedContext } from "../middleware";
+import { AuthResponse, MeResponse } from "../services/spotify";
 
 export function initAuthRoutes(router: Router) {
   router.get("/login", function (ctx, next) {
@@ -24,7 +26,7 @@ export function initAuthRoutes(router: Router) {
     );
   });
 
-  router.get("/oauth_callback", async function (ctx, next) {
+  router.get("/oauth_callback", async function (ctx: EnhancedContext, next) {
     // your application requests refresh and access tokens
     // after checking the state parameter
 
@@ -62,28 +64,50 @@ export function initAuthRoutes(router: Router) {
     };
 
     let authPostResponse;
+    let authPostResponseData: AuthResponse;
     try {
       authPostResponse = await axios(authOptions);
+      authPostResponseData = authPostResponse.data;
     } catch (error) {
       ctx.logger.error(error);
       throw error;
     }
-    ctx.logger.info({ data: authPostResponse.data || "null" });
+    ctx.logger.info({ authPostResponseData }, "Auth response");
+    const tokenExpiryDate = new Date(
+      Date.now() + authPostResponseData.expires_in * 1000
+    );
+    ctx.logger.info(`Expires at: ${tokenExpiryDate}`);
     if (authPostResponse.status === 200) {
-      const access_token = authPostResponse.data.access_token;
+      const accessToken = authPostResponse.data.access_token;
 
       const options: AxiosRequestConfig = {
         method: "GET",
         url: "https://api.spotify.com/v1/me",
-        headers: { Authorization: "Bearer " + access_token },
+        headers: { Authorization: "Bearer " + accessToken },
         responseType: "json",
       };
 
       let testGetResponse;
+      let meData: MeResponse;
 
       try {
         testGetResponse = await axios(options);
-        ctx.logger.info({ testGetResponse: testGetResponse.data }, "Success!");
+        meData = testGetResponse.data;
+        const userSpotifyId = meData.id;
+        ctx.logger.info({ meData }, "me response");
+        const token = ctx.jwtService.sign({
+          userSpotifyId,
+          accessToken,
+        });
+        await Promise.all([
+          ctx.cacheService.setExpiryDate(userSpotifyId, tokenExpiryDate),
+          ctx.cacheService.setRefreshToken(
+            userSpotifyId,
+            authPostResponseData.refresh_token
+          ),
+        ]);
+        ctx.cookies.set("jwt", token);
+        ctx.redirect(`/home?token=${token}`);
       } catch (error) {
         ctx.logger.error(error);
         throw error;
