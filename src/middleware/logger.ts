@@ -53,6 +53,5 @@ export async function withLogger(
     requestId: v4(),
     destination: 1,
   });
-  ctx.logger.info("test");
   await next();
 }
