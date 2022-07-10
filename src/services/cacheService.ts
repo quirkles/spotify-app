@@ -9,6 +9,7 @@ const redisUrl = `redis://:${redisPassword}@${redisHost}:${redisPort}`;
 interface CacheEntity {
   userSpotifyId?: string;
   refreshToken?: string;
+  accessToken?: string;
   accessTokenExpiryDateTime?: Date;
 }
 
@@ -32,6 +33,15 @@ export class CacheService {
     }
     return this.redisClient.hSet(userSpotifyId, "refreshToken", refreshToken);
   }
+  async setAccessToken(
+    userSpotifyId: string,
+    accessToken: string
+  ): Promise<number> {
+    if (!this.redisClient.isOpen) {
+      await this.redisClient.connect();
+    }
+    return this.redisClient.hSet(userSpotifyId, "accessToken", accessToken);
+  }
   async setExpiryDate(userSpotifyId: string, date: Date): Promise<number> {
     if (!this.redisClient.isOpen) {
       await this.redisClient.connect();
@@ -52,6 +62,7 @@ export class CacheService {
         entity:
           | {
               refreshToken?: string;
+              accessToken?: string;
               accessTokenExpiryDateTime?: string;
             }
           | undefined
@@ -59,10 +70,13 @@ export class CacheService {
         if (!entity) {
           return null;
         }
-        const { refreshToken, accessTokenExpiryDateTime } = entity;
+        const { refreshToken, accessTokenExpiryDateTime, accessToken } = entity;
         const returnEntity: CacheEntity = { userSpotifyId };
         if (refreshToken) {
           returnEntity.refreshToken = refreshToken;
+        }
+        if (accessToken) {
+          returnEntity.accessToken = accessToken;
         }
         if (accessTokenExpiryDateTime) {
           returnEntity.accessTokenExpiryDateTime = new Date(

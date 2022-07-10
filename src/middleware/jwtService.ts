@@ -4,5 +4,6 @@ import { JwtService } from "../services/jwtService";
 
 export async function withJwtService(ctx: EnhancedContext, next: Next) {
   ctx.jwtService = new JwtService();
+
   await next();
 }

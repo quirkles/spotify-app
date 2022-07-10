@@ -15,14 +15,21 @@ export interface User {
 
 export async function withSession(ctx: EnhancedContext, next: Next) {
   ctx.user = null;
-  const jwtCookie = ctx.cookies.get("jwt");
-  if (!jwtCookie || !jwtCookie.length) {
+  const authHeader = ctx.headers["authorization"];
+  if (!authHeader || !authHeader.length) {
     return next();
   }
-  ctx.logger.debug(`Found jwt cookie: ${jwtCookie}`);
+  ctx.logger.debug(`Found auth header: ${authHeader}`);
 
-  const { accessToken, userSpotifyId } = ctx.jwtService.verify(jwtCookie);
-  ctx.logger.trace({ accessToken, userSpotifyId }, `Decoded token.`);
+  const jwt = authHeader.split("Bearer ")[1];
+
+  if (!jwt || !jwt.length) {
+    return next();
+  }
+  ctx.logger.debug(`Found jwt: ${authHeader}`);
+
+  const { userSpotifyId } = ctx.jwtService.verify(jwt);
+  ctx.logger.trace({ userSpotifyId }, `Decoded token.`);
 
   const cacheEntityValue = await ctx.cacheService.getCacheValue(userSpotifyId);
 
@@ -32,17 +39,18 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
     return ctx.redirect("/login");
   }
 
-  const { refreshToken, accessTokenExpiryDateTime } = cacheEntityValue;
+  const { refreshToken, accessTokenExpiryDateTime, accessToken } =
+    cacheEntityValue;
 
   if (!refreshToken || !accessTokenExpiryDateTime) {
     ctx.logger.info(
       {
         refreshToken: refreshToken || "N/A",
         accessTokenExpiryDateTime: accessTokenExpiryDateTime || "N/A",
+        accessToken: accessToken || "N/A",
       },
       `Failed to find refreshToken and accessTokenExpiryDateTime in the cache.`
     );
-    ctx.cookies.set("jwt", "");
     return ctx.redirect("/login");
   }
 
@@ -50,13 +58,18 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
     userSpotifyId,
     refreshToken,
     accessToken: {
-      value: accessToken,
+      value: accessToken || "",
       expiresAt: accessTokenExpiryDateTime,
     },
   };
 
-  if (accessTokenExpiryDateTime.getTime() - Date.now() < 1000 * 60 * 2) {
-    ctx.logger.trace("Refreshing access token");
+  ctx.logger.info({
+    exp: accessTokenExpiryDateTime.getTime(),
+    now: Date.now(),
+  });
+
+  if (accessTokenExpiryDateTime.getTime() - Date.now() < 1000 * 60 * 20) {
+    ctx.logger.info("Refreshing access token");
     const params = new URLSearchParams();
     params.append("grant_type", "refresh_token");
     params.append("refresh_token", refreshToken);
@@ -88,15 +101,13 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
     const tokenExpiryDate = new Date(Date.now() + expires_in * 1000);
     user.accessToken = {
       expiresAt: tokenExpiryDate,
-      value: accessToken,
+      value: access_token,
     };
     ctx.logger.info(`Expires at: ${tokenExpiryDate}`);
-    await ctx.cacheService.setExpiryDate(userSpotifyId, tokenExpiryDate);
-    const newJwtToken = ctx.jwtService.sign({
-      userSpotifyId,
-      accessToken: access_token,
-    });
-    ctx.cookies.set("jwt", newJwtToken);
+    await Promise.all([
+      ctx.cacheService.setExpiryDate(userSpotifyId, tokenExpiryDate),
+      ctx.cacheService.setAccessToken(userSpotifyId, access_token),
+    ]);
   }
   ctx.user = user;
   await next();

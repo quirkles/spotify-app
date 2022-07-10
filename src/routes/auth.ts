@@ -101,13 +101,16 @@ export function initAuthRoutes(router: Router) {
         });
         await Promise.all([
           ctx.cacheService.setExpiryDate(userSpotifyId, tokenExpiryDate),
+          ctx.cacheService.setAccessToken(
+            userSpotifyId,
+            authPostResponseData.access_token
+          ),
           ctx.cacheService.setRefreshToken(
             userSpotifyId,
             authPostResponseData.refresh_token
           ),
         ]);
-        ctx.cookies.set("jwt", token);
-        ctx.redirect(`/home?token=${token}`);
+        ctx.redirect(`${CONFIG.frontEndHost}/landing?token=${token}`);
       } catch (error) {
         ctx.logger.error(error);
         throw error;
