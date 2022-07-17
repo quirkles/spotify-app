@@ -23,9 +23,9 @@ steps:
       - --key=first-key
 
   - id: 'compile typescript'
-    name: 'bash'
-    dir: 'scripts'
-    args: ['npm', 'run', 'compile-ts']
+    name: 'node:18'
+    entrypoint: 'npm'
+    args: [ 'run', 'compile-ts']
 
   - id: 'move package json'
     name: 'bash'
