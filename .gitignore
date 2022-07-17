@@ -3,7 +3,11 @@ node_modules
 .idea
 
 dist
+fn
 
 logs/*.log
 
 src/secrets.ts
+.env
+
+terraform/keys/*.json

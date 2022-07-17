@@ -1,6 +1,9 @@
 import { createServer } from "./server";
 import { CONFIG } from "./config";
 
-const server = createServer();
+export function main() {
+  const server = createServer();
+  return server.listen(CONFIG.port);
+}
 
-server.listen(CONFIG.port);
+main();

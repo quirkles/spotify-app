@@ -1,6 +1,6 @@
 import Koa, { DefaultState, ExtendableContext, Next } from "koa";
+import { Logger } from "winston";
 import { v4 } from "uuid";
-import { Logger } from "pino";
 
 import { withLogger } from "./logger";
 import { withCacheService } from "./redisCache";

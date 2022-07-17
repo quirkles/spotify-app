@@ -1,0 +1,1 @@
+{"Modules":[{"Key":"redis_instance","Source":"./modules/redis","Dir":"modules/redis"},{"Key":"redis_network","Source":"./modules/network","Dir":"modules/network"},{"Key":"kms","Source":"./modules/kms","Dir":"modules/kms"},{"Key":"api_function","Source":"./modules/function","Dir":"modules/function"},{"Key":"","Source":"","Dir":"."}]}

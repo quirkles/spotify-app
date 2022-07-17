@@ -34,11 +34,17 @@ export function initAuthRoutes(router: Router) {
     const state = ctx.request.query.state || null;
     const storedState = ctx.cookies.get(CONFIG.spotifyStateKey);
 
+    ctx.logger.debug("Begin oath callback", {
+      code,
+      state,
+      storedState,
+    });
+
     if (state === null || state !== storedState) {
-      ctx.logger.error(
-        { state: state || "N/A", storedState: storedState || "N/A" },
-        "mismatch in state"
-      );
+      ctx.logger.error("mismatch in state", {
+        state: state || "N/A",
+        storedState: storedState || "N/A",
+      });
       throw new Error("Failed to authorize properly");
     }
 
@@ -51,7 +57,7 @@ export function initAuthRoutes(router: Router) {
     const authOptions: AxiosRequestConfig = {
       method: "POST",
       url: "https://accounts.spotify.com/api/token",
-      data: params,
+      data: params.toString(),
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         Authorization:
@@ -60,8 +66,15 @@ export function initAuthRoutes(router: Router) {
             "base64"
           ),
       },
+      timeout: 320000,
+      timeoutErrorMessage: "Request timed out",
       responseType: "json",
     };
+    ctx.logger.debug("Using client is and secret", {
+      clientId: SECRETS.clientId.substring(0, 5) + "...",
+      clientSecret: SECRETS.clientSecret.substring(0, 5) + "...",
+    });
+    ctx.logger.debug("Calling spotify for token", { authOptions });
 
     let authPostResponse;
     let authPostResponseData: AuthResponse;
@@ -69,10 +82,10 @@ export function initAuthRoutes(router: Router) {
       authPostResponse = await axios(authOptions);
       authPostResponseData = authPostResponse.data;
     } catch (error) {
-      ctx.logger.error(error);
+      ctx.logger.error("Failed to get token from spotify api.", { error });
       throw error;
     }
-    ctx.logger.info({ authPostResponseData }, "Auth response");
+    ctx.logger.info("Auth response", { authPostResponseData });
     const tokenExpiryDate = new Date(
       Date.now() + authPostResponseData.expires_in * 1000
     );
@@ -94,7 +107,6 @@ export function initAuthRoutes(router: Router) {
         testGetResponse = await axios(options);
         meData = testGetResponse.data;
         const userSpotifyId = meData.id;
-        ctx.logger.info({ meData }, "me response");
         const token = ctx.jwtService.sign({
           userSpotifyId,
           accessToken,

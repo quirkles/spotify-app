@@ -6,7 +6,6 @@ interface Config {
   spotifyStateKey: string;
   redisHost: string;
   redisPort: string;
-  redisPassword: string;
   frontEndHost: string;
 }
 
@@ -14,11 +13,10 @@ export const CONFIG: Config = {
   port: parseInt(process.env.PORT || "3030", 10),
   environment: process.env.environment || "development",
   redirectUri:
-    process.env.redirectUri || "http://localhost:3030/oauth_callback",
+    process.env.REDIRECT_URI || "http://localhost:3030/oauth_callback",
   scope: "user-read-private user-read-email",
   spotifyStateKey: "spotify_auth_state",
-  redisHost: process.env.redisHost || "127.0.0.1",
-  redisPort: process.env.redisPort || "6379",
-  redisPassword: process.env.redisPassword || "abcdefg",
-  frontEndHost: process.env.redisPassword || "http://localhost:4200",
+  redisHost: process.env.REDIS_HOST || "127.0.0.1",
+  redisPort: process.env.REDIS_PORT || "6379",
+  frontEndHost: process.env.FRONT_END_HOST || "http://localhost:4200",
 };
