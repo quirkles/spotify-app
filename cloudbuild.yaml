@@ -17,7 +17,7 @@ steps:
       - kms
       - decrypt
       - --ciphertext-file=terraform/keys/tf-sa-key.enc
-      - --plaintext-file=terraform/keys/tf-sa-key.ts
+      - --plaintext-file=terraform/keys/tf-sa-key.json
       - --location=global
       - --keyring=spotify-app-keyring
       - --key=first-key
