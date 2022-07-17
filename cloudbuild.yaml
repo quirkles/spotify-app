@@ -1,0 +1,19 @@
+steps:
+  - id: 'Decrypt the secrets'
+    name: 'bash'
+    dir: 'scripts'
+    args: ['sh', './decryptSecrets.sh']
+
+  - id: 'pre-deploy script'
+    name: 'bash'
+    dir: 'scripts'
+    args: ['sh', './preDeploy.sh']
+
+  - id: 'tf apply'
+    name: 'hashicorp/terraform:1.0.0'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+          cd terraform      
+          terraform apply -auto-approve

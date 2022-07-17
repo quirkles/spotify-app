@@ -8,14 +8,6 @@ fi
 
 npm run compile-ts
 
-#if [ -d "./fn" ]
-#then
-#    echo "Function directory already exists. Clearing."
-#    rm -rf fn
-#fi
-#mkdir fn
-#npm run bundle-dist
-
 cp package.json ./dist
 
 if [ -d "./fn.zip" ]
