@@ -36,6 +36,10 @@ steps:
     name: 'bash'
     args: ['cp', 'package.json', './dist']
 
+  - id: 'install zip'
+    name: 'ubuntu'
+    args: ['sudo', 'apt-get', 'install', 'zip', 'unzip']
+
   - id: 'zip up dist'
     name: 'ubuntu'
     entrypoint: 'zip'
