@@ -1,12 +1,22 @@
+locals {
+  timestamp = formatdate("YYMMDDhhmmss", timestamp())
+}
+
 resource "google_storage_bucket" "api-function-bucket" {
   name     = "api-function-bucket"
   location = "US"
 }
 
+data "archive_file" "source" {
+  type        = "zip"
+  source_dir  = "../dist"
+  output_path = "/tmp/function-${local.timestamp}.zip"
+}
+
 resource "google_storage_bucket_object" "archive" {
   name   = "index.zip#${filemd5("./fn.zip")}"
   bucket = google_storage_bucket.api-function-bucket.name
-  source = "./fn.zip"
+  source = data.archive_file.source.output_path
 }
 
 resource "google_cloudfunctions_function" "api-function" {

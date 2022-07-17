@@ -36,14 +36,6 @@ steps:
     name: 'bash'
     args: ['cp', 'package.json', './dist']
 
-  - id: 'zip up dist'
-    name: 'debian'
-    args: ['zip', '-r', 'fn.zip', 'dist']
-
-  - id: 'move zip to tf dir'
-    name: 'bash'
-    args: ['mv', '-f', 'fn.zip', 'terraform/']
-
   - id: 'tf apply'
     name: 'hashicorp/terraform:1.0.0'
     entrypoint: 'sh'
