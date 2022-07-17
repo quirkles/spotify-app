@@ -5,7 +5,7 @@ steps:
     args:
       - kms
       - decrypt
-      - --ciphertext-file=../src/secrets.enc
+      - --ciphertext-file=src/secrets.enc
       - --plaintext-file=src/secrets.ts
       - --location=global
       - --keyring=spotify-app-keyring
