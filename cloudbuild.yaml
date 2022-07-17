@@ -34,17 +34,14 @@ steps:
 
   - id: 'move package json'
     name: 'bash'
-    dir: 'scripts'
     args: ['cp', 'package.json', './dist']
 
   - id: 'zip up dist'
     name: 'bash'
-    dir: 'scripts'
     args: ['zip', '-r', 'fn.zip', 'dist']
 
   - id: 'move zip to tf dir'
     name: 'bash'
-    dir: 'scripts'
     args: ['mv', '-f', 'fn.zip', 'terraform/']
 
   - id: 'tf apply'
