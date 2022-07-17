@@ -24,7 +24,12 @@ steps:
 
   - id: 'compile typescript'
     name: 'node:18'
-    entrypoint: 'npm'
+    entrypoint: 'yarn'
+    args: [ 'install']
+
+  - id: 'compile typescript'
+    name: 'node:18'
+    entrypoint: 'yarn'
     args: [ 'run', 'compile-ts']
 
   - id: 'move package json'
