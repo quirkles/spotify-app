@@ -36,14 +36,9 @@ steps:
     name: 'bash'
     args: ['cp', 'package.json', './dist']
 
-  - id: 'install zip'
-    name: 'ubuntu'
-    args: ['apt-get', 'install', 'zip', 'unzip']
-
   - id: 'zip up dist'
     name: 'ubuntu'
-    entrypoint: 'zip'
-    args: ['-r', 'fn.zip', 'dist']
+    args: ['zip', '-r', 'fn.zip', 'dist']
 
   - id: 'move zip to tf dir'
     name: 'bash'
