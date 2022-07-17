@@ -1,14 +1,46 @@
 steps:
-  - id: 'Decrypt the secrets'
+  # Step 1
+  - id: 'decrypt secrets file'
     name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: 'bash'
-    dir: 'scripts'
-    args: ['sh', './decryptSecrets.sh']
+    args:
+      - kms
+      - decrypt
+      - --ciphertext-file=../src/secrets.enc
+      - --plaintext-file=src/secrets.ts
+      - --location=global
+      - --keyring=spotify-app-keyring
+      - --key=first-key
 
-  - id: 'pre-deploy script'
+  - id: 'decrypt tf sa creds'
+    name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - kms
+      - decrypt
+      - --ciphertext-file=terraform/keys/tf-sa-key.enc
+      - --plaintext-file=terraform/keys/tf-sa-key.ts
+      - --location=global
+      - --keyring=spotify-app-keyring
+      - --key=first-key
+
+  - id: 'compile typescript'
     name: 'bash'
     dir: 'scripts'
-    args: ['sh', './preDeploy.sh']
+    args: ['npm', 'run', 'compile-ts']
+
+  - id: 'move package json'
+    name: 'bash'
+    dir: 'scripts'
+    args: ['cp', 'package.json', './dist']
+
+  - id: 'zip up dist'
+    name: 'bash'
+    dir: 'scripts'
+    args: ['zip', '-r', 'fn.zip', 'dist']
+
+  - id: 'move zip to tf dir'
+    name: 'bash'
+    dir: 'scripts'
+    args: ['mv', '-f', 'fn.zip', 'terraform/']
 
   - id: 'tf apply'
     name: 'hashicorp/terraform:1.0.0'
