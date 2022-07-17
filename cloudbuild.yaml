@@ -37,7 +37,7 @@ steps:
     args: ['cp', 'package.json', './dist']
 
   - id: 'zip up dist'
-    name: 'ubuntu'
+    name: 'debian'
     args: ['zip', '-r', 'fn.zip', 'dist']
 
   - id: 'move zip to tf dir'
