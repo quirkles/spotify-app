@@ -37,8 +37,9 @@ steps:
     args: ['cp', 'package.json', './dist']
 
   - id: 'zip up dist'
-    name: 'bash'
-    args: ['zip', '-r', 'fn.zip', 'dist']
+    name: 'ubuntu'
+    entrypoint: 'zip'
+    args: ['-r', 'fn.zip', 'dist']
 
   - id: 'move zip to tf dir'
     name: 'bash'
