@@ -22,7 +22,7 @@ steps:
       - --keyring=spotify-app-keyring
       - --key=first-key
 
-  - id: 'compile typescript'
+  - id: 'install deps'
     name: 'node:18'
     entrypoint: 'yarn'
     args: [ 'install']
