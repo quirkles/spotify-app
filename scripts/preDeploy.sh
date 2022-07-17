@@ -9,17 +9,3 @@ fi
 npm run compile-ts
 
 cp package.json ./dist
-
-if [ -d "./fn.zip" ]
-then
-    echo "Function zipfile exists. Deleting"
-    rm fn.zip
-fi
-
-
-
-zip -r fn.zip dist
-zip fn.zip package.json
-
-
-mv -f fn.zip terraform/
