@@ -1,10 +1,9 @@
-import { UserSessionData } from "../kinds";
+import { Kind } from "../kinds";
 import { Datastore } from "@google-cloud/datastore";
 import { Logger } from "winston";
 
 export * from "./userSessionData";
 
-type Kind = UserSessionData;
 
 export class BaseRepository<T extends Kind> {
   constructor(private datastore: Datastore, protected logger: Logger) {}

@@ -3,6 +3,7 @@ import { Next } from "koa";
 import axios, { AxiosRequestConfig } from "axios";
 import { SECRETS } from "../secrets";
 import { AuthResponse } from "../services/spotify";
+import { UserSessionData } from "../services/datastore/kinds";
 
 export interface User {
   userSpotifyId: string;
@@ -31,7 +32,12 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
   const { userSpotifyId } = ctx.jwtService.verify(jwt);
   ctx.logger.debug(`Decoded token.`, { userSpotifyId });
 
-  const cacheEntityValue = await ctx.datastoreService.getCacheValue(userSpotifyId);
+  const userSessionDataRepository =
+    ctx.datastoreService.getRepository("userSessionData");
+
+  const cacheEntityValue = await userSessionDataRepository.getByKey(
+    userSpotifyId
+  );
 
   if (cacheEntityValue === null) {
     ctx.logger.info(`No cache entity for user ${userSpotifyId} found`);
@@ -40,7 +46,7 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
   }
 
   const { refreshToken, accessTokenExpiryDateTime, accessToken } =
-    cacheEntityValue;
+    cacheEntityValue.data;
 
   if (!refreshToken || !accessTokenExpiryDateTime) {
     ctx.logger.info(
@@ -99,10 +105,13 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
       value: access_token,
     };
     ctx.logger.info(`Expires at: ${tokenExpiryDate}`);
-    await Promise.all([
-      ctx.datastoreService.setExpiryDate(userSpotifyId, tokenExpiryDate),
-      ctx.datastoreService.setAccessToken(userSpotifyId, access_token),
-    ]);
+    await userSessionDataRepository.save(
+      new UserSessionData({
+        userSpotifyId,
+        accessTokenExpiryDateTime: tokenExpiryDate,
+        accessToken,
+      })
+    );
   }
   ctx.user = user;
   await next();

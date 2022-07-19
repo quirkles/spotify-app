@@ -1,6 +1,6 @@
 export class BaseKind<T extends Record<string, string | number | Date>> {
   private readonly keyPair: [string, string];
-  private readonly data: T;
+  readonly data: T;
 
   constructor(data: T, keyName: keyof T) {
     if (!data[keyName]) {
