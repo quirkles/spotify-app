@@ -35,6 +35,7 @@ resource "google_cloudfunctions_function" "api-function" {
     REDIS_HOST = var.redis_host
     REDIS_PORT = var.redis_port
     REDIRECT_URI = "https://us-central1-spotify-application-356414.cloudfunctions.net/spotify-api/oauth_callback"
+    FRONT_END_HOST = "https://spotify-frontend-wgvygz45ba-pd.a.run.app"
     IS_CLOUD = "1"
   }
   timeout = 540
