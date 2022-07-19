@@ -1,7 +1,4 @@
 import Router from "@koa/router";
-import { v4 } from "uuid";
-import { CONFIG } from "../config";
-import { stringify } from "querystring";
 import { SECRETS } from "../secrets";
 import axios, { AxiosRequestConfig } from "axios";
 import { MeResponse } from "../services/spotify";

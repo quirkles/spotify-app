@@ -3,16 +3,16 @@ import { Logger } from "winston";
 import { v4 } from "uuid";
 
 import { withLogger } from "./logger";
-import { withCacheService } from "./redisCache";
+import { withDatastoreService } from "./datastore";
 import { withJwtService } from "./jwtService";
 import { User, withSession } from "./session";
 
-import { CacheService, JwtService } from "../services";
+import { DataStoreService, JwtService } from "../services";
 
 export interface EnhancedContext extends ExtendableContext {
   correlationId: string;
   logger: Logger;
-  cacheService: CacheService;
+  datastoreService: DataStoreService;
   jwtService: JwtService;
   user: User | null;
 }
@@ -31,7 +31,7 @@ export function initializeMiddleware(
   return app
     .use(withCorrelationId)
     .use(withLogger)
-    .use(withCacheService)
+    .use(withDatastoreService)
     .use(withJwtService)
     .use(withSession);
 }

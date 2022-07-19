@@ -35,7 +35,4 @@ module "redis_instance" {
 
 module "api_function" {
   source                      = "./modules/function"
-  redis_network_vpc_connector = google_vpc_access_connector.connector.id
-  redis_host                  = module.redis_instance.redis_host
-  redis_port                  = module.redis_instance.redis_port
 }

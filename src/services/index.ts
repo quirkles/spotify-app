@@ -1,2 +1,2 @@
-export * from "./cacheService";
+export * from "./datastore";
 export * from "./jwtService";

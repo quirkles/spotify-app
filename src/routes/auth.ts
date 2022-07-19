@@ -6,6 +6,7 @@ import Router from "@koa/router";
 import axios, { AxiosRequestConfig } from "axios";
 import { EnhancedContext } from "../middleware";
 import { AuthResponse, MeResponse } from "../services/spotify";
+import { UserSessionData } from "../services/datastore/kinds";
 
 export function initAuthRoutes(router: Router) {
   router.get("/login", function (ctx, next) {
@@ -109,19 +110,17 @@ export function initAuthRoutes(router: Router) {
         const userSpotifyId = meData.id;
         const token = ctx.jwtService.sign({
           userSpotifyId,
-          accessToken,
         });
-        await Promise.all([
-          ctx.cacheService.setExpiryDate(userSpotifyId, tokenExpiryDate),
-          ctx.cacheService.setAccessToken(
+        const userSessionDataRepository =
+          ctx.datastoreService.getRepository("userSessionData");
+        await userSessionDataRepository.save(
+          new UserSessionData({
             userSpotifyId,
-            authPostResponseData.access_token
-          ),
-          ctx.cacheService.setRefreshToken(
-            userSpotifyId,
-            authPostResponseData.refresh_token
-          ),
-        ]);
+            accessToken,
+            accessTokenExpiryDateTime: tokenExpiryDate,
+            refreshToken: authPostResponseData.refresh_token,
+          })
+        );
         ctx.redirect(`${CONFIG.frontEndHost}/landing?token=${token}`);
       } catch (error) {
         ctx.logger.error(error);

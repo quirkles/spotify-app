@@ -31,7 +31,7 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
   const { userSpotifyId } = ctx.jwtService.verify(jwt);
   ctx.logger.debug(`Decoded token.`, { userSpotifyId });
 
-  const cacheEntityValue = await ctx.cacheService.getCacheValue(userSpotifyId);
+  const cacheEntityValue = await ctx.datastoreService.getCacheValue(userSpotifyId);
 
   if (cacheEntityValue === null) {
     ctx.logger.info(`No cache entity for user ${userSpotifyId} found`);
@@ -100,8 +100,8 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
     };
     ctx.logger.info(`Expires at: ${tokenExpiryDate}`);
     await Promise.all([
-      ctx.cacheService.setExpiryDate(userSpotifyId, tokenExpiryDate),
-      ctx.cacheService.setAccessToken(userSpotifyId, access_token),
+      ctx.datastoreService.setExpiryDate(userSpotifyId, tokenExpiryDate),
+      ctx.datastoreService.setAccessToken(userSpotifyId, access_token),
     ]);
   }
   ctx.user = user;

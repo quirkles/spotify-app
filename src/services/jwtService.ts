@@ -5,7 +5,6 @@ import { sign, verify } from "jsonwebtoken";
 const { jwtPrivateKey } = SECRETS;
 
 interface JwTPayload {
-  accessToken: string;
   userSpotifyId: string;
 }
 
