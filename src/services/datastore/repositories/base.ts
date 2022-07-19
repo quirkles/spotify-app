@@ -1,7 +1,6 @@
 import { Kind } from "../kinds";
 import { Datastore } from "@google-cloud/datastore";
 import { Logger } from "winston";
-import { omit } from "ramda";
 
 export class BaseRepository<T extends Kind> {
   constructor(private datastore: Datastore, protected logger: Logger) {}
@@ -38,8 +37,6 @@ export class BaseRepository<T extends Kind> {
         constructorName.substring(0, constructorName.lastIndexOf("Repository")),
       keyName,
     ];
-
-    this.logger.debug("key to get", { keyPair });
 
     const key = this.datastore.key(keyPair);
 
