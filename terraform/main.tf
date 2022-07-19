@@ -14,25 +14,10 @@ provider "google" {
   credentials = "./keys/tf-sa-key.json"
 }
 
-module "redis_network" {
-  source = "./modules/network"
-}
-
-resource "google_vpc_access_connector" "connector" {
-  name          = "vpc-con"
-  ip_cidr_range = "10.8.0.0/28"
-  network       = module.redis_network.redis_network_id
-}
-
 module "kms" {
   source = "./modules/kms"
 }
 
-module "redis_instance" {
-  source     = "./modules/redis"
-  network_id = module.redis_network.redis_network_id
-}
-
 module "api_function" {
-  source                      = "./modules/function"
+  source = "./modules/function"
 }
