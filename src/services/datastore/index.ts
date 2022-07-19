@@ -1,10 +1,10 @@
 import { Logger } from "winston";
 import { Datastore } from "@google-cloud/datastore";
-import { BaseRepository, UserSessionDataRepository } from "./repositories";
-import { UserSessionData } from "./kinds";
+
+import { UserSessionDataKindRepository } from "./repositories";
 
 interface RepositoryMap {
-  userSessionData: BaseRepository<UserSessionData>;
+  userSessionData: UserSessionDataKindRepository;
 }
 
 export class DataStoreService {
@@ -13,7 +13,7 @@ export class DataStoreService {
   constructor(private datastore: Datastore, logger: Logger) {
     this.logger = logger;
     this.repositoryMap = {
-      userSessionData: new UserSessionDataRepository(datastore, logger),
+      userSessionData: new UserSessionDataKindRepository(datastore, logger),
     };
   }
 

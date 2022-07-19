@@ -3,7 +3,7 @@ import { Next } from "koa";
 import axios, { AxiosRequestConfig } from "axios";
 import { SECRETS } from "../secrets";
 import { AuthResponse } from "../services/spotify";
-import { UserSessionData } from "../services/datastore/kinds";
+import { UserSessionDataKind } from "../services/datastore/kinds";
 
 export interface User {
   userSpotifyId: string;
@@ -39,14 +39,16 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
     userSpotifyId
   );
 
-  if (cacheEntityValue === null) {
+  ctx.logger.debug("Found user", { cacheEntityValue });
+
+  if (!cacheEntityValue) {
     ctx.logger.info(`No cache entity for user ${userSpotifyId} found`);
     ctx.cookies.set("jwt", "");
     return ctx.redirect("/login");
   }
 
   const { refreshToken, accessTokenExpiryDateTime, accessToken } =
-    cacheEntityValue.data;
+    cacheEntityValue;
 
   if (!refreshToken || !accessTokenExpiryDateTime) {
     ctx.logger.info(
@@ -57,6 +59,7 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
         accessToken: accessToken || "N/A",
       }
     );
+    throw new Error("dang");
     return ctx.redirect("/login");
   }
 
@@ -105,8 +108,8 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
       value: access_token,
     };
     ctx.logger.info(`Expires at: ${tokenExpiryDate}`);
-    await userSessionDataRepository.save(
-      new UserSessionData({
+    await userSessionDataRepository.update(
+      new UserSessionDataKind({
         userSpotifyId,
         accessTokenExpiryDateTime: tokenExpiryDate,
         accessToken,

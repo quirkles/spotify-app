@@ -1,4 +1,6 @@
-export class BaseKind<T extends Record<string, string | number | Date>> {
+export class BaseKind<
+  T extends Record<string, string | number | Date | undefined>
+> {
   private readonly keyPair: [string, string];
   readonly data: T;
 
@@ -10,7 +12,7 @@ export class BaseKind<T extends Record<string, string | number | Date>> {
     }
     if (typeof data[keyName] !== "string") {
       throw new Error(
-        `Value of fieid ${String(keyName)} used for the key must be a string`
+        `Value of field ${String(keyName)} used for the key must be a string`
       );
     }
     this.keyPair = [this.constructor.name, data[keyName] as string];

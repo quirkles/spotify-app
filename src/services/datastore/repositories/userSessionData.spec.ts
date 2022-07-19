@@ -1,4 +1,4 @@
-import { UserSessionDataRepository } from "./userSessionData";
+import { UserSessionDataKindRepository } from "./userSessionData";
 
 describe("user session data repo", () => {
   it("should gets by key correctly", async function () {
@@ -10,7 +10,7 @@ describe("user session data repo", () => {
 
     const mockLogger = {};
 
-    const repo = new UserSessionDataRepository(
+    const repo = new UserSessionDataKindRepository(
       mockDatastore as any,
       mockLogger as any
     );

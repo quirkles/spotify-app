@@ -1,35 +1,35 @@
-import { BaseRepository } from "./index";
-import { UserSessionData } from "../kinds";
+import { UserSessionDataKind } from "../kinds";
+import { BaseRepository } from "./base";
 
-export class UserSessionDataRepository extends BaseRepository<UserSessionData> {
+export class UserSessionDataKindRepository extends BaseRepository<UserSessionDataKind> {
   async setRefreshToken(
     userSpotifyId: string,
     refreshToken: string
-  ): Promise<UserSessionData> {
+  ): Promise<UserSessionDataKind> {
     this.logger.debug("Setting refresh token", {
       userSpotifyId,
       refreshToken: `${refreshToken.substring(0, 20)}...`,
     });
-    return this.save(new UserSessionData({ userSpotifyId, refreshToken }));
+    return this.save(new UserSessionDataKind({ userSpotifyId, refreshToken }));
   }
 
   async setAccessToken(
     userSpotifyId: string,
     accessToken: string
-  ): Promise<UserSessionData> {
+  ): Promise<UserSessionDataKind> {
     this.logger.debug("Setting access token", {
       userSpotifyId,
       accessToken: `${accessToken.substring(0, 20)}...`,
     });
-    return this.save(new UserSessionData({ userSpotifyId, accessToken }));
+    return this.save(new UserSessionDataKind({ userSpotifyId, accessToken }));
   }
 
   async setExpiryDate(
     userSpotifyId: string,
     date: Date
-  ): Promise<UserSessionData> {
+  ): Promise<UserSessionDataKind> {
     this.logger.debug("Setting expiry date", { userSpotifyId, date });
 
-    return this.save(new UserSessionData({ userSpotifyId, date }));
+    return this.save(new UserSessionDataKind({ userSpotifyId, date }));
   }
 }

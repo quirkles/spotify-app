@@ -1,8 +1,8 @@
-import { UserSessionData } from "./userSessionData";
+import { UserSessionDataKind } from "./userSessionData";
 
-describe("UserSessionData model", () => {
+describe("UserSessionDataKind model", () => {
   it("should generate the expected entity", function () {
-    const model = new UserSessionData({
+    const model = new UserSessionDataKind({
       userSpotifyId: "userSpotifyId",
       refreshToken: "refreshToken",
     });

@@ -6,7 +6,7 @@ import Router from "@koa/router";
 import axios, { AxiosRequestConfig } from "axios";
 import { EnhancedContext } from "../middleware";
 import { AuthResponse, MeResponse } from "../services/spotify";
-import { UserSessionData } from "../services/datastore/kinds";
+import { UserSessionDataKind } from "../services/datastore/kinds";
 
 export function initAuthRoutes(router: Router) {
   router.get("/login", function (ctx, next) {
@@ -114,7 +114,7 @@ export function initAuthRoutes(router: Router) {
         const userSessionDataRepository =
           ctx.datastoreService.getRepository("userSessionData");
         await userSessionDataRepository.save(
-          new UserSessionData({
+          new UserSessionDataKind({
             userSpotifyId,
             accessToken,
             accessTokenExpiryDateTime: tokenExpiryDate,

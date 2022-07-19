@@ -1,5 +1,5 @@
-import { UserSessionData } from "./userSessionData";
+import { UserSessionDataKind } from "./userSessionData";
 
 export * from "./userSessionData";
 
-export type Kind = UserSessionData;
+export type Kind = UserSessionDataKind;
