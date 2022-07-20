@@ -10,17 +10,6 @@ steps:
       - --keyring=spotify-app-keyring
       - --key=first-key
 
-  - id: 'decrypt tf sa creds'
-    name: 'gcr.io/cloud-builders/gcloud'
-    args:
-      - kms
-      - decrypt
-      - --ciphertext-file=terraform/keys/tf-sa-key.enc
-      - --plaintext-file=terraform/keys/tf-sa-key.json
-      - --location=global
-      - --keyring=spotify-app-keyring
-      - --key=first-key
-
   - id: 'install deps'
     name: 'node:18'
     entrypoint: 'yarn'
