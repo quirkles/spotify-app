@@ -14,7 +14,7 @@ data "archive_file" "source" {
 }
 
 resource "google_storage_bucket_object" "archive" {
-  name   = "index.zip#${filemd5("./fn.zip")}"
+  name   = "index.zip#${data.archive_file.source.output_md5}"
   bucket = google_storage_bucket.api-function-bucket.name
   source = data.archive_file.source.output_path
 }
