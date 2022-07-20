@@ -16,6 +16,6 @@ export async function withLogger(
     },
   });
 
-  ctx.logger.info("Received request", { request: ctx.request.toJSON() });
+  ctx.logger.debug("Received request", { request: ctx.request.toJSON() });
   await next();
 }

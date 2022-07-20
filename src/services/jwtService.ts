@@ -6,6 +6,8 @@ const { jwtPrivateKey } = SECRETS;
 
 interface JwTPayload {
   userSpotifyId: string;
+  accessToken: string;
+  accessTokenExpiryTime: string;
 }
 
 export class JwtService {

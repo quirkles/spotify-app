@@ -81,7 +81,7 @@ export function initAuthRoutes(router: Router) {
     const authPostResponse = await axios(authOptions).catch(handleAxiosError);
     const authPostResponseData = authPostResponse.data;
     ctx.logger.info("Auth response", { authPostResponseData });
-    const tokenExpiryDate = new Date(
+    const accessTokenExpiryDate = new Date(
       Date.now() + authPostResponseData.expires_in * 1000
     );
     if (authPostResponse.status === 200) {
@@ -99,6 +99,8 @@ export function initAuthRoutes(router: Router) {
       const userSpotifyId = meData.id;
       const token = ctx.jwtService.sign({
         userSpotifyId,
+        accessToken: authPostResponse.data.access_token,
+        accessTokenExpiryTime: accessTokenExpiryDate.getTime().toString(),
       });
       const userSessionDataRepository =
         ctx.datastoreService.getRepository("userSessionData");
@@ -106,7 +108,7 @@ export function initAuthRoutes(router: Router) {
         new UserSessionDataKind({
           userSpotifyId,
           accessToken,
-          accessTokenExpiryDateTime: tokenExpiryDate,
+          accessTokenExpiryDateTime: accessTokenExpiryDate,
           refreshToken: authPostResponseData.refresh_token,
         })
       );

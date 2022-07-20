@@ -2,16 +2,46 @@ import { EnhancedContext } from "./index";
 import { Next } from "koa";
 import axios, { AxiosRequestConfig } from "axios";
 import { SECRETS } from "../secrets";
-import { AuthResponse } from "../services/spotify";
-import { UserSessionDataKind } from "../services/datastore/kinds";
 import { handleAxiosError } from "../errors";
+import { UserSessionDataKind } from "../services/datastore/kinds";
 
 export interface User {
   userSpotifyId: string;
-  refreshToken: string;
   accessToken: {
     value: string;
     expiresAt: Date;
+  };
+}
+
+async function refreshAccessToken(refreshToken: string): Promise<{
+  newAccessToken: string;
+  newExpiryDateTime: Date;
+}> {
+  const params = new URLSearchParams();
+  params.append("grant_type", "refresh_token");
+  params.append("refresh_token", refreshToken);
+  const authOptions: AxiosRequestConfig = {
+    method: "POST",
+    url: "https://accounts.spotify.com/api/token",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization:
+        "Basic " +
+        Buffer.from(SECRETS.clientId + ":" + SECRETS.clientSecret).toString(
+          "base64"
+        ),
+    },
+    data: params,
+    responseType: "json",
+  };
+
+  const authPostResponse = await axios(authOptions).catch(handleAxiosError);
+  const authPostResponseData = authPostResponse.data;
+  const { expires_in, access_token } = authPostResponseData;
+  const tokenExpiryDate = new Date(Date.now() + expires_in * 1000);
+  return {
+    newExpiryDateTime: tokenExpiryDate,
+    newAccessToken: access_token,
   };
 }
 
@@ -19,97 +49,68 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
   ctx.user = null;
   const authHeader = ctx.headers["authorization"];
   if (!authHeader || !authHeader.length) {
+    ctx.logger.debug(`No auth header present`);
     return next();
   }
-  ctx.logger.debug(`Found auth header: ${authHeader}`);
-
   const jwt = authHeader.split("Bearer ")[1];
 
   if (!jwt || !jwt.length) {
+    ctx.logger.debug(`No jwt in auth header`);
     return next();
   }
-  ctx.logger.debug(`Found jwt: ${authHeader}`);
+  ctx.logger.debug(`Found jwt: ${jwt}`);
 
-  const { userSpotifyId } = ctx.jwtService.verify(jwt);
-  ctx.logger.debug(`Decoded token.`, { userSpotifyId });
+  const decodedJwt = ctx.jwtService.verify(jwt);
 
-  const userSessionDataRepository =
-    ctx.datastoreService.getRepository("userSessionData");
+  const { userSpotifyId, accessTokenExpiryTime, accessToken } = decodedJwt;
 
-  const cacheEntityValue = await userSessionDataRepository.getByKey(
-    userSpotifyId
-  );
-
-  ctx.logger.debug("Found user", { cacheEntityValue });
-
-  if (!cacheEntityValue) {
-    ctx.logger.info(`No cache entity for user ${userSpotifyId} found`);
-    ctx.cookies.set("jwt", "");
-    return ctx.redirect("/login");
-  }
-
-  const { refreshToken, accessTokenExpiryDateTime, accessToken } =
-    cacheEntityValue;
-
-  if (!refreshToken || !accessTokenExpiryDateTime) {
-    ctx.logger.info(
-      `Failed to find refreshToken and accessTokenExpiryDateTime in the cache.`,
-      {
-        refreshToken: refreshToken || "N/A",
-        accessTokenExpiryDateTime: accessTokenExpiryDateTime || "N/A",
-        accessToken: accessToken || "N/A",
-      }
-    );
-    throw new Error("dang");
-    return ctx.redirect("/login");
-  }
+  ctx.logger.debug(`Decoded token.`, { decodedJwt });
 
   const user: User = {
     userSpotifyId,
-    refreshToken,
     accessToken: {
-      value: accessToken || "",
-      expiresAt: accessTokenExpiryDateTime,
+      value: accessToken,
+      expiresAt: new Date(Number(accessTokenExpiryTime)),
     },
   };
 
-  if (accessTokenExpiryDateTime.getTime() - Date.now() < 1000 * 60 * 20) {
-    ctx.logger.info("Refreshing access token");
-    const params = new URLSearchParams();
-    params.append("grant_type", "refresh_token");
-    params.append("refresh_token", refreshToken);
-    const authOptions: AxiosRequestConfig = {
-      method: "POST",
-      url: "https://accounts.spotify.com/api/token",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization:
-          "Basic " +
-          Buffer.from(SECRETS.clientId + ":" + SECRETS.clientSecret).toString(
-            "base64"
-          ),
-      },
-      data: params,
-      responseType: "json",
-    };
+  // if we are within one minute of the token expiring, refresh
+  if (user.accessToken.expiresAt.getTime() - Date.now() < 1000 * 60) {
+    const userSessionDataRepository =
+      ctx.datastoreService.getRepository("userSessionData");
+    const userSessionData = await userSessionDataRepository.getByKey(
+      decodedJwt.userSpotifyId
+    );
+    if (!userSessionData || !userSessionData.refreshToken) {
+      ctx.logger.info(
+        `Invalid entity for user ${decodedJwt.userSpotifyId} found`
+      );
+      ctx.cookies.set("jwt", "");
+      return ctx.redirect("/login");
+    }
+    const { newAccessToken, newExpiryDateTime } = await refreshAccessToken(
+      userSessionData.refreshToken
+    );
 
-    const authPostResponse = await axios(authOptions).catch(handleAxiosError);
-    const authPostResponseData = authPostResponse.data;
-    const { expires_in, access_token } = authPostResponseData;
-    const tokenExpiryDate = new Date(Date.now() + expires_in * 1000);
-    user.accessToken = {
-      expiresAt: tokenExpiryDate,
-      value: access_token,
-    };
-    ctx.logger.info(`Expires at: ${tokenExpiryDate}`);
+    user.accessToken.value = newAccessToken;
+    user.accessToken.expiresAt = newExpiryDateTime;
+    ctx.cookies.set(
+      "x-set-jwt",
+      ctx.jwtService.sign({
+        accessToken: newAccessToken,
+        accessTokenExpiryTime: newExpiryDateTime.getTime().toString(),
+        userSpotifyId: userSpotifyId,
+      })
+    );
     await userSessionDataRepository.update(
       new UserSessionDataKind({
         userSpotifyId,
-        accessTokenExpiryDateTime: tokenExpiryDate,
-        accessToken,
+        accessToken: newAccessToken,
+        accessTokenExpiryDateTime: newExpiryDateTime,
       })
     );
   }
+
   ctx.user = user;
   await next();
 }
