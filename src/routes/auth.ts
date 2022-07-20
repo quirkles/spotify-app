@@ -43,7 +43,7 @@ export function initAuthRoutes(router: Router) {
     });
 
     if (state === null || state !== storedState) {
-      ctx.logger.error("mismatch in state", {
+      ctx.logger.warn("Failed to authorize properly: mismatch in state", {
         state: state || "N/A",
         storedState: storedState || "N/A",
       });
@@ -78,20 +78,12 @@ export function initAuthRoutes(router: Router) {
     });
     ctx.logger.debug("Calling spotify for token", { authOptions });
 
-    let authPostResponse;
-    let authPostResponseData: AuthResponse;
-    try {
-      authPostResponse = await axios(authOptions).catch(handleAxiosError);
-      authPostResponseData = authPostResponse.data;
-    } catch (error) {
-      ctx.logger.error("Failed to get token from spotify api.", { error });
-      throw error;
-    }
+    const authPostResponse = await axios(authOptions).catch(handleAxiosError);
+    const authPostResponseData = authPostResponse.data;
     ctx.logger.info("Auth response", { authPostResponseData });
     const tokenExpiryDate = new Date(
       Date.now() + authPostResponseData.expires_in * 1000
     );
-    ctx.logger.info(`Expires at: ${tokenExpiryDate}`);
     if (authPostResponse.status === 200) {
       const accessToken = authPostResponse.data.access_token;
 
@@ -102,33 +94,24 @@ export function initAuthRoutes(router: Router) {
         responseType: "json",
       };
 
-      let testGetResponse;
-      let meData: MeResponse;
-
-      try {
-        testGetResponse = await axios(options).catch(handleAxiosError);
-        meData = testGetResponse.data;
-        const userSpotifyId = meData.id;
-        const token = ctx.jwtService.sign({
+      const testGetResponse = await axios(options).catch(handleAxiosError);
+      const meData = testGetResponse.data;
+      const userSpotifyId = meData.id;
+      const token = ctx.jwtService.sign({
+        userSpotifyId,
+      });
+      const userSessionDataRepository =
+        ctx.datastoreService.getRepository("userSessionData");
+      await userSessionDataRepository.save(
+        new UserSessionDataKind({
           userSpotifyId,
-        });
-        const userSessionDataRepository =
-          ctx.datastoreService.getRepository("userSessionData");
-        await userSessionDataRepository.save(
-          new UserSessionDataKind({
-            userSpotifyId,
-            accessToken,
-            accessTokenExpiryDateTime: tokenExpiryDate,
-            refreshToken: authPostResponseData.refresh_token,
-          })
-        );
-        ctx.redirect(`${CONFIG.frontEndHost}/landing?token=${token}`);
-      } catch (error) {
-        ctx.logger.error(error);
-        throw error;
-      }
+          accessToken,
+          accessTokenExpiryDateTime: tokenExpiryDate,
+          refreshToken: authPostResponseData.refresh_token,
+        })
+      );
+      ctx.redirect(`${CONFIG.frontEndHost}/landing?token=${token}`);
     } else {
-      ctx.logger.error("Invalid token");
       throw new Error("Invalid token");
     }
     await next();

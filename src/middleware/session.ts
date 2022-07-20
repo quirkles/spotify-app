@@ -4,6 +4,7 @@ import axios, { AxiosRequestConfig } from "axios";
 import { SECRETS } from "../secrets";
 import { AuthResponse } from "../services/spotify";
 import { UserSessionDataKind } from "../services/datastore/kinds";
+import { handleAxiosError } from "../errors";
 
 export interface User {
   userSpotifyId: string;
@@ -92,15 +93,8 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
       responseType: "json",
     };
 
-    let authPostResponse;
-    let authPostResponseData: AuthResponse;
-    try {
-      authPostResponse = await axios(authOptions);
-      authPostResponseData = authPostResponse.data;
-    } catch (error) {
-      ctx.logger.error(error);
-      throw error;
-    }
+    const authPostResponse = await axios(authOptions).catch(handleAxiosError);
+    const authPostResponseData = authPostResponse.data;
     const { expires_in, access_token } = authPostResponseData;
     const tokenExpiryDate = new Date(Date.now() + expires_in * 1000);
     user.accessToken = {

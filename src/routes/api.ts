@@ -1,8 +1,7 @@
 import Router from "@koa/router";
-import { SECRETS } from "../secrets";
 import axios, { AxiosRequestConfig } from "axios";
-import { MeResponse } from "../services/spotify";
 import { EnhancedContext } from "../middleware";
+import { handleAxiosError } from "../errors";
 
 export function initApiRoutes(router: Router) {
   router.get("/me", async function (ctx: EnhancedContext, next) {
@@ -17,17 +16,8 @@ export function initApiRoutes(router: Router) {
       responseType: "json",
     };
 
-    let testGetResponse;
-    let meData: MeResponse;
-
-    try {
-      testGetResponse = await axios(options);
-      meData = testGetResponse.data;
-      ctx.body = meData;
-      await next();
-    } catch (error) {
-      ctx.logger.error(error);
-      throw error;
-    }
+    const testGetResponse = await axios(options).catch(handleAxiosError);
+    ctx.body = testGetResponse.data;
+    await next();
   });
 }

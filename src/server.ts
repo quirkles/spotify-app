@@ -16,5 +16,18 @@ export const createServer = (): Koa => {
 
   app.use(router.routes());
 
+  app.use(async function (ctx, next) {
+    try {
+      await next;
+    } catch (err) {
+      ctx.status = (err as Error & { status: number }).status || 500;
+      ctx.body = (err as Error).message;
+      ctx.app.emit("error", err);
+    }
+  });
+  app.on("error", (err, ctx) => {
+    ctx.logger.error(err);
+  });
+
   return app;
 };
