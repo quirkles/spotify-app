@@ -7,6 +7,7 @@ import axios, { AxiosRequestConfig } from "axios";
 import { EnhancedContext } from "../middleware";
 import { AuthResponse, MeResponse } from "../services/spotify";
 import { UserSessionDataKind } from "../services/datastore/kinds";
+import { handleAxiosError } from "../errors";
 
 export function initAuthRoutes(router: Router) {
   router.get("/login", function (ctx, next) {
@@ -80,7 +81,7 @@ export function initAuthRoutes(router: Router) {
     let authPostResponse;
     let authPostResponseData: AuthResponse;
     try {
-      authPostResponse = await axios(authOptions);
+      authPostResponse = await axios(authOptions).catch(handleAxiosError);
       authPostResponseData = authPostResponse.data;
     } catch (error) {
       ctx.logger.error("Failed to get token from spotify api.", { error });
@@ -105,7 +106,7 @@ export function initAuthRoutes(router: Router) {
       let meData: MeResponse;
 
       try {
-        testGetResponse = await axios(options);
+        testGetResponse = await axios(options).catch(handleAxiosError);
         meData = testGetResponse.data;
         const userSpotifyId = meData.id;
         const token = ctx.jwtService.sign({
