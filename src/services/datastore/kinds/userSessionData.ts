@@ -1,6 +1,7 @@
 import { BaseKind } from "./base";
 
-export interface IUserSessionData extends Record<string, string | Date | number | undefined> {
+export interface IUserSessionData
+  extends Record<string, string | Date | number | undefined> {
   userSpotifyId: string;
   refreshToken?: string;
   accessToken?: string;
