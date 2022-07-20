@@ -10,7 +10,9 @@ export class UserSessionDataKindRepository extends BaseRepository<UserSessionDat
       userSpotifyId,
       refreshToken: `${refreshToken.substring(0, 20)}...`,
     });
-    return this.save(new UserSessionDataKind({ userSpotifyId, refreshToken }));
+    return this.update(
+      new UserSessionDataKind({ userSpotifyId, refreshToken })
+    );
   }
 
   async setAccessToken(
@@ -21,7 +23,7 @@ export class UserSessionDataKindRepository extends BaseRepository<UserSessionDat
       userSpotifyId,
       accessToken: `${accessToken.substring(0, 20)}...`,
     });
-    return this.save(new UserSessionDataKind({ userSpotifyId, accessToken }));
+    return this.update(new UserSessionDataKind({ userSpotifyId, accessToken }));
   }
 
   async setExpiryDate(
@@ -30,6 +32,6 @@ export class UserSessionDataKindRepository extends BaseRepository<UserSessionDat
   ): Promise<UserSessionDataKind> {
     this.logger.debug("Setting expiry date", { userSpotifyId, date });
 
-    return this.save(new UserSessionDataKind({ userSpotifyId, date }));
+    return this.update(new UserSessionDataKind({ userSpotifyId, date }));
   }
 }

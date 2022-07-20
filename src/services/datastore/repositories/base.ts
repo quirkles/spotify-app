@@ -5,6 +5,7 @@ import { Logger } from "winston";
 export class BaseRepository<T extends Kind> {
   constructor(private datastore: Datastore, protected logger: Logger) {}
   async save(kind: T): Promise<T> {
+    this.logger.debug("Saving entity", kind);
     const { keyPair, data } = kind.entity;
 
     const key = this.datastore.key(keyPair);
@@ -18,6 +19,7 @@ export class BaseRepository<T extends Kind> {
   }
 
   async update(kind: T): Promise<T> {
+    this.logger.debug("Updating entity", kind);
     const { keyPair, data } = kind.entity;
 
     const key = this.datastore.key(keyPair);
