@@ -43,7 +43,7 @@ steps:
       - '-c'
       - |
           cd terraform      
-          terraform init
+          terraform init -upgrade
   - id: 'tf apply'
     name: 'hashicorp/terraform:1.2.5'
     entrypoint: 'sh'
