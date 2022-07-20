@@ -24,7 +24,7 @@ export class BaseRepository<T extends Kind> {
 
     const key = this.datastore.key(keyPair);
 
-    await this.datastore.update({
+    await this.datastore.merge({
       key,
       data,
     });

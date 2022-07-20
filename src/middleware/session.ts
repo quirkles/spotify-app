@@ -75,7 +75,7 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
   };
 
   // if we are within one minute of the token expiring, refresh
-  if (user.accessToken.expiresAt.getTime() - Date.now() < 1000 * 60 * 60 * 12) {
+  if (user.accessToken.expiresAt.getTime() - Date.now() < 1000 * 60) {
     ctx.logger.debug("Refreshing token");
     const userSessionDataRepository =
       ctx.datastoreService.getRepository("userSessionData");
@@ -95,8 +95,8 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
 
     user.accessToken.value = newAccessToken;
     user.accessToken.expiresAt = newExpiryDateTime;
-    ctx.cookies.set(
-      "x-set-jwt",
+    ctx.set(
+      "X-Set-Jwt",
       ctx.jwtService.sign({
         accessToken: newAccessToken,
         accessTokenExpiryTime: newExpiryDateTime.getTime().toString(),

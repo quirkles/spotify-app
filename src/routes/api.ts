@@ -5,7 +5,7 @@ import { handleAxiosError } from "../errors";
 
 export function initApiRoutes(router: Router) {
   router.get("/me", async function (ctx: EnhancedContext, next) {
-    if (!ctx.user?.accessToken?.value.length) {
+    if (!ctx.user?.accessToken?.value?.length) {
       ctx.logger.error("No session user found");
       return next();
     }

@@ -9,7 +9,11 @@ import { Logger } from "winston";
 export const createServer = (): Koa => {
   const app = new Koa();
 
-  app.use(cors());
+  app.use(
+    cors({
+      exposeHeaders: "X-Set-Jwt",
+    })
+  );
 
   initializeMiddleware(app);
 
