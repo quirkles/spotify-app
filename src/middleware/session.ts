@@ -75,7 +75,7 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
   };
 
   // if we are within one minute of the token expiring, refresh
-  if (user.accessToken.expiresAt.getTime() - Date.now() < 1000 * 60) {
+  if (user.accessToken.expiresAt.getTime() - Date.now() < 1000 * 60 * 60 * 12) {
     const userSessionDataRepository =
       ctx.datastoreService.getRepository("userSessionData");
     const userSessionData = await userSessionDataRepository.getByKey(
