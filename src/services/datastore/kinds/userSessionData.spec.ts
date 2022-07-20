@@ -11,7 +11,7 @@ describe("UserSessionDataKind model", () => {
         refreshToken: "refreshToken",
         userSpotifyId: "userSpotifyId",
       },
-      keyPair: ["UserSessionData", "userSpotifyId"],
+      keyPair: ["UserSessionDataKind", "userSpotifyId"],
     });
   });
 });

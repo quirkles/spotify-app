@@ -5,7 +5,8 @@
   "main": "function.js",
   "scripts": {
     "test": "jest",
-    "compile-ts": "tsc",
+    "compile-ts": "tsc --project tsconfig.prod.json",
+    "compile-ts-check": "tsc --noEmit --project tsconfig.prod.json",
     "bundle-dist": "webpack",
     "start": "node dist/index.js",
     "lint": "eslint --ext .js,.ts src",

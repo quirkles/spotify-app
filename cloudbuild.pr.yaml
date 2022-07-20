@@ -1,0 +1,31 @@
+steps:
+  - id: 'decrypt secrets file'
+    name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - kms
+      - decrypt
+      - --ciphertext-file=src/secrets.enc
+      - --plaintext-file=src/secrets.ts
+      - --location=global
+      - --keyring=spotify-app-keyring
+      - --key=first-key
+
+  - id: 'install deps'
+    name: 'node:18'
+    entrypoint: 'yarn'
+    args: [ 'install']
+
+  - id: 'compile typescript check'
+    name: 'node:18'
+    entrypoint: 'yarn'
+    args: [ 'run', 'compile-ts-check']
+
+  - id: 'lint'
+    name: 'node:18'
+    entrypoint: 'yarn'
+    args: [ 'run', 'lint']
+
+  - id: 'test'
+    name: 'node:18'
+    entrypoint: 'yarn'
+    args: [ 'run', 'test']

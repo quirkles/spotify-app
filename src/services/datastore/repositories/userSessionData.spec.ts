@@ -17,7 +17,13 @@ describe("user session data repo", () => {
 
     await repo.getByKey("abc");
 
-    expect(mockDatastore.key).toHaveBeenCalledWith(["UserSessionData", "abc"]);
-    expect(mockDatastore.get).toHaveBeenCalledWith(["UserSessionData", "abc"]);
+    expect(mockDatastore.key).toHaveBeenCalledWith([
+      "UserSessionDataKind",
+      "abc",
+    ]);
+    expect(mockDatastore.get).toHaveBeenCalledWith([
+      "UserSessionDataKind",
+      "abc",
+    ]);
   });
 });

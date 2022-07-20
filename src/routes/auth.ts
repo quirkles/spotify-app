@@ -5,12 +5,11 @@ import { SECRETS } from "../secrets";
 import Router from "@koa/router";
 import axios, { AxiosRequestConfig } from "axios";
 import { EnhancedContext } from "../middleware";
-import { AuthResponse, MeResponse } from "../services/spotify";
 import { UserSessionDataKind } from "../services/datastore/kinds";
 import { handleAxiosError } from "../errors";
 
 export function initAuthRoutes(router: Router) {
-  router.get("/login", function (ctx, next) {
+  router.get("/login", function (ctx) {
     const state = v4();
     ctx.cookies.set(CONFIG.spotifyStateKey, state);
 

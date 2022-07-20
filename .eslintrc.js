@@ -11,6 +11,14 @@ module.exports = {
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended",
   ],
+  overrides: [
+    {
+      files: ["**/*.spec.*"],
+      rules: {
+        "@typescript-eslint/no-explicit-any": 0,
+      },
+    },
+  ],
   env: {
     browser: false,
     es2021: true,
