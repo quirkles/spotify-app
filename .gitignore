@@ -11,3 +11,6 @@ src/secrets.ts
 .env
 
 terraform/keys/*.json
+
+
+creds/*.json
