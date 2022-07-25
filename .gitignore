@@ -10,4 +10,4 @@ logs/*.log
 src/secrets.ts
 .env
 
-terraform/keys/*.json
+keys/*.json
