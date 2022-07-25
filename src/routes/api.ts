@@ -1,7 +1,7 @@
 import Router from "@koa/router";
 import axios, { AxiosRequestConfig } from "axios";
 import { EnhancedContext } from "../middleware";
-import { handleAxiosError } from "../errors";
+import { handleAxiosError, UnauthorizedError } from "../errors";
 
 export function initApiRoutes(router: Router) {
   router.get("/me", async function (ctx: EnhancedContext, next) {
@@ -18,6 +18,17 @@ export function initApiRoutes(router: Router) {
 
     const testGetResponse = await axios(options).catch(handleAxiosError);
     ctx.body = testGetResponse.data;
+    await next();
+  });
+
+  router.post("/mood", async function (ctx: EnhancedContext, next) {
+    if (!ctx.user?.accessToken?.value?.length) {
+      throw new UnauthorizedError("You must be logged in");
+    }
+    const moodRepository = ctx.sqlService.getRepository("mood");
+    const created = await moodRepository.create(ctx.request.body);
+    ctx.logger.info(" created mood", { created });
+    ctx.body = { id: "abc" };
     await next();
   });
 }

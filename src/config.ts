@@ -1,3 +1,5 @@
+import { SECRETS } from "./secrets";
+
 interface Config {
   port: number;
   environment: string;
@@ -5,6 +7,8 @@ interface Config {
   scope: string;
   spotifyStateKey: string;
   frontEndHost: string;
+  postgresHost: string;
+  postgresPort: string;
 }
 
 export const CONFIG: Config = {
@@ -15,4 +19,6 @@ export const CONFIG: Config = {
   scope: "user-read-private user-read-email",
   spotifyStateKey: "spotify_auth_state",
   frontEndHost: process.env.FRONT_END_HOST || "http://localhost:4000",
+  postgresHost: process.env.PG_HOST || "localhost",
+  postgresPort: process.env.PG_PORT || "5432",
 };
