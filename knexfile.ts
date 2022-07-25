@@ -2,8 +2,6 @@ import type { Knex } from "knex";
 import { CONFIG } from "./src/config";
 import { SECRETS } from "./src/secrets";
 
-// Update with your config settings.
-
 const config: { [key: string]: Knex.Config } = {
   local: {
     client: "postgresql",

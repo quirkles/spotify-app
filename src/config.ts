@@ -1,5 +1,3 @@
-import { SECRETS } from "./secrets";
-
 interface Config {
   port: number;
   environment: string;

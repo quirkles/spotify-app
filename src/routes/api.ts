@@ -28,7 +28,7 @@ export function initApiRoutes(router: Router) {
     const moodRepository = ctx.sqlService.getRepository("mood");
     const created = await moodRepository.create(ctx.request.body);
     ctx.logger.info(" created mood", { created });
-    ctx.body = { id: "abc" };
+    ctx.body = created;
     await next();
   });
 }

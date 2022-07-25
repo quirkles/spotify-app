@@ -7,7 +7,11 @@ export class MoodRepository extends BaseRepository<Mood> {
   constructor(connection: Knex) {
     super(connection);
   }
-  async create(data: Mood): Promise<Mood> {
-    return this.connection(this.tableName).insert(data);
+  async create(data: Omit<Mood, "id">): Promise<Mood> {
+    const result = await this.connection(this.tableName).insert(data, ["id"]);
+    return {
+      id: result[0].id,
+      ...data,
+    };
   }
 }
