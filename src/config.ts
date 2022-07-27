@@ -14,7 +14,7 @@ export const CONFIG: Config = {
   environment: process.env.environment || "development",
   redirectUri:
     process.env.REDIRECT_URI || "http://localhost:3030/oauth_callback",
-  scope: "user-read-private user-read-email",
+  scope: "user-read-private user-read-email user-top-read",
   spotifyStateKey: "spotify_auth_state",
   frontEndHost: process.env.FRONT_END_HOST || "http://localhost:4000",
   postgresHost: process.env.PG_HOST || "localhost",

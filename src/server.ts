@@ -6,7 +6,7 @@ import { EnhancedContext, initializeMiddleware } from "./middleware";
 import Router from "@koa/router";
 import { Logger } from "winston";
 
-export const createServer = (): Koa => {
+export const createServer = async (): Promise<Koa> => {
   const app = new Koa();
 
   app.use(
@@ -15,7 +15,7 @@ export const createServer = (): Koa => {
     })
   );
 
-  initializeMiddleware(app);
+  await initializeMiddleware(app);
 
   app.use(async function (ctx, next) {
     try {

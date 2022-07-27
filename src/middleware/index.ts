@@ -1,7 +1,7 @@
 import Koa, { DefaultState, ExtendableContext, Next } from "koa";
-import podyparser from "koa-bodyparser";
 import { Logger } from "winston";
 import { v4 } from "uuid";
+import bodyParser from "koa-bodyparser";
 
 import { DataStoreService, JwtService, SqlService } from "../services";
 
@@ -10,12 +10,18 @@ import { withDatastoreService } from "./datastore";
 import { withJwtService } from "./jwtService";
 import { User, withSession } from "./session";
 import { withSqlService } from "./sql";
-import bodyParser from "koa-bodyparser";
+import { EventBus } from "../services/eventBus";
+import { withEventBus } from "./eventBus";
+import { SpotifyService } from "../services/spotify";
+import { withSpotifyService } from "./spotify";
+import { logger } from "../logger";
 
 export interface EnhancedContext extends ExtendableContext {
+  eventBus: EventBus;
   correlationId: string;
   logger: Logger;
   datastoreService: DataStoreService;
+  spotifyService: SpotifyService;
   sqlService: SqlService;
   jwtService: JwtService;
   user: User | null;
@@ -29,15 +35,21 @@ async function withCorrelationId(
   await next();
 }
 
-export function initializeMiddleware(
+export async function initializeMiddleware(
   app: Koa
-): Koa<DefaultState, EnhancedContext> {
-  return app
-    .use(withCorrelationId)
-    .use(bodyParser())
-    .use(withSqlService)
-    .use(withLogger)
-    .use(withDatastoreService)
-    .use(withJwtService)
-    .use(withSession);
+): Promise<Koa<DefaultState, EnhancedContext>> {
+  return (
+    app
+      .use(withCorrelationId)
+      .use(bodyParser())
+      .use(await withLogger(logger))
+      // eventBus depends on the logger
+      .use(withEventBus)
+      // subsequent middleware can leverage the event bus
+      .use(withSpotifyService)
+      .use(await withSqlService(logger))
+      .use(withDatastoreService)
+      .use(withJwtService)
+      .use(withSession)
+  );
 }

@@ -10,7 +10,7 @@
     "bundle-dist": "webpack",
     "start": "node dist/src/index.js",
     "lint": "eslint --ext .js,.ts src",
-    "watch": "ts-node-dev --respawn -- src/index.ts",
+    "watch": "ts-node-dev --respawn --project tsconfig.json src/index.ts",
     "redis:up": "docker-compose -f docker-compose-redis.yml up",
     "redis:down": "docker-compose -f docker-compose-redis.yml down"
   },
@@ -45,13 +45,15 @@
     "@koa/router": "^11.0.1",
     "axios": "^0.27.2",
     "jsonwebtoken": "^8.5.1",
-    "knex": "^2.2.0",
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
     "logform": "^2.4.2",
     "pg": "^8.7.3",
     "querystring": "^0.2.1",
     "ramda": "^0.28.0",
+    "reflect-metadata": "^0.1.13",
+    "typeorm": "^0.3.7",
+    "typeorm-naming-strategies": "^4.1.0",
     "uuid": "^8.3.2",
     "winston": "^3.8.1"
   }

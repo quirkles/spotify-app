@@ -4,6 +4,7 @@ import axios, { AxiosRequestConfig } from "axios";
 import { SECRETS } from "../secrets";
 import { handleAxiosError } from "../errors";
 import { UserSessionDataKind } from "../services/datastore/kinds";
+import { Event } from "../services/eventBus";
 
 export interface User {
   userSpotifyId: string;
@@ -64,6 +65,10 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
 
   const { userSpotifyId, accessTokenExpiryTime, accessToken } = decodedJwt;
 
+  ctx.eventBus.emit(Event.AccessTokenUpdated, {
+    newAccessToken: accessToken,
+  });
+
   ctx.logger.debug(`Decoded token.`, { decodedJwt });
 
   const user: User = {
@@ -94,6 +99,10 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
     );
 
     user.accessToken.value = newAccessToken;
+    ctx.eventBus.emit(Event.AccessTokenUpdated, {
+      newAccessToken,
+    });
+
     user.accessToken.expiresAt = newExpiryDateTime;
     ctx.set(
       "X-Set-Jwt",
