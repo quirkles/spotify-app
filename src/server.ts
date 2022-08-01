@@ -4,7 +4,6 @@ import cors from "@koa/cors";
 import { initRoutes } from "./routes";
 import { EnhancedContext, initializeMiddleware } from "./middleware";
 import Router from "@koa/router";
-import { Logger } from "winston";
 
 export const createServer = async (): Promise<Koa> => {
   const app = new Koa();

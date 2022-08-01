@@ -25,6 +25,7 @@ export interface EnhancedContext extends ExtendableContext {
   sqlService: SqlService;
   jwtService: JwtService;
   user: User | null;
+  params: Record<string, string>;
 }
 
 async function withCorrelationId(
