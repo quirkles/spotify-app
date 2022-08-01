@@ -3,6 +3,7 @@ import { EnhancedContext } from "../middleware";
 import { UnauthorizedError } from "../errors";
 import { Artist, Mood } from "../services";
 import { fromTopArtistResponseItem } from "../services/spotify/transforms";
+import { getRandomElementFromArray, getRandomSampleOfArray } from "../utils";
 
 export interface GetMoodsParams {
   limit?: number;
@@ -52,6 +53,11 @@ export function initMoodRoutes(router: Router) {
     const artistRepository = ctx.sqlService.getRepository("Artist");
     const topArtists = await ctx.spotifyService.getTopItems({
       type: "artists",
+      time_range: getRandomElementFromArray([
+        "short_term",
+        "long_term",
+        "medium_term",
+      ]),
     });
     const artists: Artist[] = topArtists.items.map((artistData) =>
       artistRepository.create(fromTopArtistResponseItem(artistData))
@@ -69,7 +75,7 @@ export function initMoodRoutes(router: Router) {
       savedMood = await moodRepository.save({
         ...ctx.request.body,
         playCount: 0,
-        artists: savedArtists,
+        artists: getRandomSampleOfArray(savedArtists, 15),
         createdBy: ctx.user?.userSpotifyId,
       });
     } catch (err) {
@@ -80,8 +86,11 @@ export function initMoodRoutes(router: Router) {
   });
 
   router.patch("/mood/:moodId", async function (ctx: EnhancedContext, next) {
-    type PatchableMood = Pick<Mood, "name" | "playCount">;
-    const patchableMoodFields: (keyof PatchableMood)[] = ["name", "playCount"];
+    const patchableMoodFields: (keyof Mood)[] = [
+      "name",
+      "playCount",
+      "description",
+    ];
     if (!ctx.user?.accessToken?.value?.length) {
       throw new UnauthorizedError("You must be logged in");
     }
@@ -96,12 +105,12 @@ export function initMoodRoutes(router: Router) {
       ctx.status = 404;
       return next();
     }
-    const payload: PatchableMood = ctx.request.body;
+    const payload: Partial<Mood> = ctx.request.body;
     let needsSaving = false;
     for (const field of patchableMoodFields) {
       if (Object.prototype.hasOwnProperty.call(payload, field)) {
         needsSaving = true;
-        (mood[field] as PatchableMood[typeof field]) = payload[field] as string;
+        (mood[field] as Partial<Mood>[typeof field]) = payload[field] as string;
       }
     }
     await moodRepository.save(mood);

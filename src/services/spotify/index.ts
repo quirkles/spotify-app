@@ -33,7 +33,7 @@ export class SpotifyService {
     limit?: number;
     time_range?: "short_term" | "medium_term" | "long_term";
   }): Promise<TopArtistResponse> {
-    params.limit = params.limit || 20;
+    params.limit = params.limit || 50;
     params.time_range = params.time_range || "medium_term";
     const { type, ...rest } = params;
     const queryString = Object.entries(rest)
