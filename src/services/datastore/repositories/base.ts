@@ -1,6 +1,7 @@
 import { Kind } from "../kinds";
 import { Datastore } from "@google-cloud/datastore";
 import { Logger } from "winston";
+import { asyncRetry } from "../../../utils";
 
 export class BaseRepository<T extends Kind> {
   constructor(private datastore: Datastore, protected logger: Logger) {}

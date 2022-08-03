@@ -1,5 +1,6 @@
 import { UserSessionDataKind } from "../kinds";
 import { BaseRepository } from "./base";
+import { asyncRetry } from "../../../utils";
 
 export class UserSessionDataKindRepository extends BaseRepository<UserSessionDataKind> {
   async setRefreshToken(
@@ -10,7 +11,7 @@ export class UserSessionDataKindRepository extends BaseRepository<UserSessionDat
       userSpotifyId,
       refreshToken: `${refreshToken.substring(0, 20)}...`,
     });
-    return this.update(
+    return asyncRetry(this.update)(
       new UserSessionDataKind({ userSpotifyId, refreshToken })
     );
   }
@@ -23,7 +24,9 @@ export class UserSessionDataKindRepository extends BaseRepository<UserSessionDat
       userSpotifyId,
       accessToken: `${accessToken.substring(0, 20)}...`,
     });
-    return this.update(new UserSessionDataKind({ userSpotifyId, accessToken }));
+    return asyncRetry(this.update)(
+      new UserSessionDataKind({ userSpotifyId, accessToken })
+    );
   }
 
   async setExpiryDate(
@@ -32,6 +35,8 @@ export class UserSessionDataKindRepository extends BaseRepository<UserSessionDat
   ): Promise<UserSessionDataKind> {
     this.logger.debug("Setting expiry date", { userSpotifyId, date });
 
-    return this.update(new UserSessionDataKind({ userSpotifyId, date }));
+    return asyncRetry(this.update)(
+      new UserSessionDataKind({ userSpotifyId, date })
+    );
   }
 }

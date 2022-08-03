@@ -5,6 +5,7 @@ import { SECRETS } from "../secrets";
 import { handleAxiosError } from "../errors";
 import { UserSessionDataKind } from "../services/datastore/kinds";
 import { Event } from "../services/eventBus";
+import { asyncRetry } from "../utils";
 
 export interface User {
   userSpotifyId: string;
@@ -84,9 +85,10 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
     ctx.logger.debug("Refreshing token");
     const userSessionDataRepository =
       ctx.datastoreService.getRepository("userSessionData");
-    const userSessionData = await userSessionDataRepository.getByKey(
-      decodedJwt.userSpotifyId
-    );
+    const userSessionData = await asyncRetry(
+      userSessionDataRepository.getByKey,
+      { thisArg: userSessionDataRepository }
+    )(decodedJwt.userSpotifyId);
     if (!userSessionData || !userSessionData.refreshToken) {
       ctx.logger.info(
         `Invalid entity for user ${decodedJwt.userSpotifyId} found`
@@ -112,7 +114,9 @@ export async function withSession(ctx: EnhancedContext, next: Next) {
         userSpotifyId: userSpotifyId,
       })
     );
-    await userSessionDataRepository.update(
+    await asyncRetry(userSessionDataRepository.update, {
+      thisArg: userSessionDataRepository,
+    })(
       new UserSessionDataKind({
         userSpotifyId,
         accessToken: newAccessToken,
