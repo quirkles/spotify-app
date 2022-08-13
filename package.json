@@ -12,7 +12,9 @@
     "lint": "eslint --ext .js,.ts src",
     "watch": "ts-node-dev --respawn --project tsconfig.json src/index.ts",
     "redis:up": "docker-compose -f docker-compose-redis.yml up",
-    "redis:down": "docker-compose -f docker-compose-redis.yml down"
+    "redis:down": "docker-compose -f docker-compose-redis.yml down",
+    "typeorm": "ts-node-dev ./node_modules/typeorm/cli.js",
+    "migrate": "ts-node-dev ./node_modules/typeorm/cli.js migration:run -d src/services/sql/dataSource.ts"
   },
   "author": "",
   "license": "ISC",

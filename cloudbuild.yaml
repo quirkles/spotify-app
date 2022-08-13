@@ -15,6 +15,12 @@ steps:
     entrypoint: 'yarn'
     args: [ 'install']
 
+  - id: 'migrate'
+    name: 'node:18'
+    entrypoint: 'yarn'
+    args: [ 'run', 'migrate']
+    env: ['IS_CLOUD=1']
+
   - id: 'compile typescript'
     name: 'node:18'
     entrypoint: 'yarn'
