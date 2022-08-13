@@ -33,7 +33,7 @@ export async function getDataSource(logger: Logger): Promise<DataSource> {
     database: "spotify",
     entities: [Mood, Artist],
     migrations: [path.join("..", "migrations")],
-    synchronize: true,
+    synchronize: !process.env.IS_CLOUD,
     namingStrategy: new SnakeNamingStrategy(),
   };
   logger.info("typeorm config", typeOrmConfig);
