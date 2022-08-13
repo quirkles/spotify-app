@@ -19,7 +19,7 @@ steps:
     name: 'node:18'
     entrypoint: 'yarn'
     args: [ 'run', 'migrate']
-    env: ['IS_CLOUD=1']
+    env: ['IS_CLOUD=1', 'PG_HOST=${_PG_HOST}']
 
   - id: 'compile typescript'
     name: 'node:18'
