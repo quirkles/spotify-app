@@ -2,11 +2,10 @@ import Koa from "koa";
 import cors from "@koa/cors";
 
 import { initRoutes } from "./routes";
-import { initializeMiddleware } from "./middleware";
+import { EnhancedContext, initializeMiddleware } from "./middleware";
 import Router from "@koa/router";
-import { Logger } from "winston";
 
-export const createServer = (): Koa => {
+export const createServer = async (): Promise<Koa> => {
   const app = new Koa();
 
   app.use(
@@ -15,7 +14,7 @@ export const createServer = (): Koa => {
     })
   );
 
-  initializeMiddleware(app);
+  await initializeMiddleware(app);
 
   app.use(async function (ctx, next) {
     try {
@@ -31,8 +30,12 @@ export const createServer = (): Koa => {
 
   app.use(router.routes());
 
-  app.on("error", (err, logger: Logger) => {
-    logger.error(err);
+  app.on("error", (err, ctx: Partial<EnhancedContext>) => {
+    if (ctx.logger?.error) {
+      ctx.logger?.error(err);
+    } else {
+      console.error(err);
+    }
   });
 
   return app;
