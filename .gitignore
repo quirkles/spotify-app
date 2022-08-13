@@ -11,3 +11,5 @@ src/secrets.ts
 .env
 
 keys/*.json
+
+creds/*.json
