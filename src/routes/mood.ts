@@ -117,4 +117,62 @@ export function initMoodRoutes(router: Router) {
     ctx.body = { mood };
     await next();
   });
+
+  router.get("/mood/:moodId", async function (ctx: EnhancedContext, next) {
+    if (!ctx.user?.accessToken?.value?.length) {
+      throw new UnauthorizedError("You must be logged in");
+    }
+    const moodRepository = ctx.sqlService.getRepository("Mood");
+    const mood = await moodRepository.findOne({
+      relations: ["artists"],
+      where: {
+        createdBy: ctx.user?.userSpotifyId,
+        id: ctx.params["moodId"],
+      },
+    });
+    if (!mood) {
+      ctx.status = 404;
+      return next();
+    }
+    ctx.body = { mood };
+    await next();
+  });
+
+  router.delete(
+    "/mood/:moodId/artist/:artistId",
+    async function (ctx: EnhancedContext, next) {
+      if (!ctx.user?.accessToken?.value?.length) {
+        throw new UnauthorizedError("You must be logged in");
+      }
+      const moodRepository = ctx.sqlService.getRepository("Mood");
+      const mood = await moodRepository.findOne({
+        relations: ["artists"],
+        where: {
+          createdBy: ctx.user?.userSpotifyId,
+          id: ctx.params["moodId"],
+        },
+      });
+      if (!mood) {
+        ctx.status = 404;
+        return next();
+      }
+      let deleted = false;
+      const artistId = ctx.params["artistId"];
+      mood.artists = mood.artists.reduce(
+        (artists: Artist[], artist: Artist) => {
+          if (artist.id === artistId) {
+            deleted = true;
+            return artists;
+          }
+          return [...artists, artist];
+        },
+        []
+      );
+      if (deleted) {
+        await moodRepository.save(mood);
+      }
+      ctx.body = { mood };
+      await next();
+    }
+  );
 }
