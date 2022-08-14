@@ -59,7 +59,10 @@ export async function initializeMiddleware(
       .use(debugMiddlewareStack("after logger"))
       .use(
         process.env.IS_CLOUD
-          ? (ctx, next) => next() // do nothing
+          ? (ctx, next) => {
+              ctx.logger.info("loggin ctx", { ctx });
+              return next();
+            } // do nothing
           : bodyParser({
               onerror: function (err, ctx: Context) {
                 if (ctx.logger) {
