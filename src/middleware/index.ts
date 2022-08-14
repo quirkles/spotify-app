@@ -38,7 +38,11 @@ async function withCorrelationId(
 
 function debugMiddlewareStack(message: string) {
   return async function (ctx: ExtendableContext & EnhancedContext, next: Next) {
-    ctx.logger.info(message);
+    if (ctx?.logger) {
+      ctx.logger.info(message);
+    } else {
+      console.log(message);
+    }
     await next();
   };
 }
