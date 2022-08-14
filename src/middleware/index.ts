@@ -60,7 +60,10 @@ export async function initializeMiddleware(
       .use(
         process.env.IS_CLOUD
           ? (ctx, next) => {
-              ctx.logger.info("loggin ctx", { ctx });
+              ctx.logger.info("logging ctx req", { req: ctx.req });
+              ctx.logger.info("logging ctx req body", {
+                req: (ctx.req as any).body,
+              });
               return next();
             } // do nothing
           : bodyParser({
