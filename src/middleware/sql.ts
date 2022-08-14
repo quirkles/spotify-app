@@ -1,7 +1,7 @@
+import { Logger } from "winston";
 import { ExtendableContext, Next } from "koa";
 import { EnhancedContext } from "./index";
 import { dataSource, SqlService } from "../services";
-import { Logger } from "winston";
 
 export const withSqlService = async (logger: Logger) => {
   if (dataSource.isInitialized) {

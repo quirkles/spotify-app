@@ -1,4 +1,4 @@
-import Koa, { DefaultState, ExtendableContext, Next } from "koa";
+import Koa, { Context, DefaultState, ExtendableContext, Next } from "koa";
 import { Logger } from "winston";
 import { v4 } from "uuid";
 import bodyParser from "koa-bodyparser";
@@ -56,7 +56,18 @@ export async function initializeMiddleware(
       .use(debugMiddlewareStack("after withCorrelationId"))
       .use(await withLogger(logger))
       .use(debugMiddlewareStack("after logger"))
-      .use(bodyParser())
+      .use(
+        bodyParser({
+          onerror: function (err, ctx: Context) {
+            if (ctx.logger) {
+              ctx.logger?.error("body parse error", { error: err });
+            } else {
+              console.log("body parse error", { error: err }) //eslint-disable-line
+            }
+            ctx.throw(err);
+          },
+        })
+      )
       .use(debugMiddlewareStack("after bodyParser"))
       // eventBus depends on the logger
       .use(withEventBus)
