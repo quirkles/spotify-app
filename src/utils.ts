@@ -62,3 +62,5 @@ export function asyncRetry<T, U extends unknown[]>(
     return Promise.reject(error);
   };
 }
+
+export const noop = () => null;

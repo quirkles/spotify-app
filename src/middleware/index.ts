@@ -1,4 +1,4 @@
-import Koa, { DefaultState, ExtendableContext, Next } from "koa";
+import Koa, { Context, DefaultState, ExtendableContext, Next } from "koa";
 import { Logger } from "winston";
 import { v4 } from "uuid";
 import bodyParser from "koa-bodyparser";
@@ -15,6 +15,7 @@ import { withEventBus } from "./eventBus";
 import { SpotifyService } from "../services/spotify";
 import { withSpotifyService } from "./spotify";
 import { logger } from "../logger";
+import { noop } from "../utils";
 
 export interface EnhancedContext extends ExtendableContext {
   eventBus: EventBus;
@@ -56,7 +57,20 @@ export async function initializeMiddleware(
       .use(debugMiddlewareStack("after withCorrelationId"))
       .use(await withLogger(logger))
       .use(debugMiddlewareStack("after logger"))
-      .use(bodyParser())
+      .use(
+        process.env.IS_CLOUD
+          ? noop
+          : bodyParser({
+              onerror: function (err, ctx: Context) {
+                if (ctx.logger) {
+                  ctx.logger?.error("body parse error", { error: err });
+                } else {
+              console.log("body parse error", { error: err }) //eslint-disable-line
+                }
+                ctx.throw(err);
+              },
+            })
+      )
       .use(debugMiddlewareStack("after bodyParser"))
       // eventBus depends on the logger
       .use(withEventBus)
