@@ -58,24 +58,16 @@ export async function initializeMiddleware(
       .use(await withLogger(logger))
       .use(debugMiddlewareStack("after logger"))
       .use(
-        process.env.IS_CLOUD
-          ? (ctx, next) => {
-              ctx.logger.info("logging ctx req", { req: ctx.req });
-              ctx.logger.info("logging ctx req body", {
-                req: (ctx.req as any).body,
-              });
-              return next();
-            } // do nothing
-          : bodyParser({
-              onerror: function (err, ctx: Context) {
-                if (ctx.logger) {
-                  ctx.logger?.error("body parse error", { error: err });
-                } else {
+        bodyParser({
+          onerror: function (err, ctx: Context) {
+            if (ctx.logger) {
+              ctx.logger?.error("body parse error", { error: err });
+            } else {
               console.log("body parse error", { error: err }) //eslint-disable-line
-                }
-                ctx.throw(err);
-              },
-            })
+            }
+            ctx.throw(err);
+          },
+        })
       )
       .use(debugMiddlewareStack("after bodyParser"))
       // eventBus depends on the logger

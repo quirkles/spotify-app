@@ -30,18 +30,19 @@ steps:
     name: 'bash'
     args: ['cp', 'package.json', './dist']
 
-  - id: 'deploy'
-    name: 'gcr.io/cloud-builders/gcloud'
-    dir: dist
-    args:
-      - functions
-      - deploy
-      - spotify-api
-      - --region=us-central1
-      - --allow-unauthenticated
-      - --entry-point=main
-      - --runtime=nodejs16
-      - --memory=128
-      - --trigger-http
-      - --timeout=180
-      - --set-env-vars=REDIRECT_URI=https://us-central1-spotify-application-356414.cloudfunctions.net/spotify-api/oauth_callback,FRONT_END_HOST=https://spotify-frontend-wgvygz45ba-pd.a.run.app,PG_HOST=${_PG_HOST},IS_CLOUD=1
+  - id: 'build docker image'
+    name: 'gcr.io/cloud-builders/docker'
+    args: [ 'build', '-t', 'spotify-api:$COMMIT_SHA', '.' ]
+
+  - id: 'tag docker image'
+    name: 'gcr.io/cloud-builders/docker'
+    args: [ 'tag', 'spotify-api:$COMMIT_SHA', 'northamerica-northeast2-docker.pkg.dev/spotify-application-356414/spotify-api/spotify-api:$COMMIT_SHA']
+
+  - id: 'push docker image'
+    name: 'gcr.io/cloud-builders/docker'
+    args: [ 'push', 'northamerica-northeast2-docker.pkg.dev/spotify-application-356414/spotify-api/spotify-api:$COMMIT_SHA']
+
+  - id: 'deploy image'
+    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [ 'run', 'deploy', 'spotify-api', '--image', 'northamerica-northeast2-docker.pkg.dev/spotify-application-356414/spotify-api/spotify-api:$COMMIT_SHA', '--region', 'northamerica-northeast2', '--memory', '128Mi', '--port', '3030', '--allow-unauthenticated', '--cpu-throttling']
