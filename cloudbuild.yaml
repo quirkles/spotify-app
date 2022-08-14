@@ -32,7 +32,7 @@ steps:
 
   - id: 'build docker image'
     name: 'gcr.io/cloud-builders/docker'
-    args: [ 'build', '-t', 'spotify-api:$COMMIT_SHA', '.' ]
+    args: [ 'build', '-t', 'spotify-api:$COMMIT_SHA', '.', '--build-arg', 'PG_HOST=${_PG_HOST}' ]
 
   - id: 'tag docker image'
     name: 'gcr.io/cloud-builders/docker'
