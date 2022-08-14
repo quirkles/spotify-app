@@ -60,7 +60,11 @@ export async function initializeMiddleware(
       .use(
         process.env.IS_CLOUD
           ? (ctx, next) => {
-              ctx.logger.info("logging ctx req", { req: ctx.req });
+              try {
+                ctx.logger.info("logging ctx req", { req: ctx.req });
+              } catch (e) {
+                console.log((e as Error).message) //eslint-disable-line
+              }
               ctx.logger.info("logging ctx req body", {
                 req: (ctx.req as any).body,
               });
