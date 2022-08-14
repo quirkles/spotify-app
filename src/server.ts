@@ -14,7 +14,12 @@ export const createServer = async (): Promise<Koa> => {
     })
   );
 
-  await initializeMiddleware(app);
+  try {
+    await initializeMiddleware(app);
+  } catch (err) {
+    console.log("Error initializing middleware") //eslint-disable-line
+    console.log(err) //eslint-disable-line
+  }
 
   app.use(async function (ctx, next) {
     try {
@@ -32,8 +37,9 @@ export const createServer = async (): Promise<Koa> => {
 
   app.on("error", (err, ctx: Partial<EnhancedContext>) => {
     if (ctx.logger?.error) {
-      ctx.logger?.error(err);
+      ctx.logger?.error("Error caught by middleware", { error: err });
     } else {
+      console.error("Error caught by middleware");
       console.error(err);
     }
   });
