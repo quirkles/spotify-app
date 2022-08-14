@@ -17,12 +17,12 @@ const transports: transport[] = [];
 const consoleLogFormatPipeline: Format[] = [timestamp()];
 
 if (process.env.IS_CLOUD !== "1") {
-  // only log to file locally
   const logsDir = path.join(__dirname, "../../logs");
 
   const logDestination = `${logsDir}/${
     environment === "development" ? "dev" : Date.now()
   }.log`;
+  console.log("Logging to file:", logDestination) //eslint-disable-line
   transports.push(
     new winston.transports.File({
       filename: logDestination,
