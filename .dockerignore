@@ -1,0 +1,7 @@
+.idea
+.vscode
+creds
+keys
+logs
+scripts
+node_modules
