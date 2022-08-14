@@ -18,4 +18,6 @@ const typeOrmConfig: DataSourceOptions = {
   namingStrategy: new SnakeNamingStrategy(),
 };
 
+console.log("typeorm config", typeOrmConfig) //eslint-disable-line
+
 export const dataSource = new DataSource(typeOrmConfig);
