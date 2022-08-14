@@ -46,11 +46,14 @@ export function initMoodRoutes(router: Router) {
   });
 
   router.post("/mood", async function (ctx: EnhancedContext, next) {
+    ctx.logger.debug("start POST /mood");
     if (!ctx.user?.accessToken?.value?.length) {
       throw new UnauthorizedError("You must be logged in");
     }
+    ctx.logger.debug("begin load repos");
     const moodRepository = ctx.sqlService.getRepository("Mood");
     const artistRepository = ctx.sqlService.getRepository("Artist");
+    ctx.logger.debug("after load repos");
     const topArtists = await ctx.spotifyService.getTopItems({
       type: "artists",
       time_range: getRandomElementFromArray([
@@ -59,6 +62,7 @@ export function initMoodRoutes(router: Router) {
         "medium_term",
       ]),
     });
+    ctx.logger.debug("after fetch top artists");
     const artists: Artist[] = topArtists.items.map((artistData) =>
       artistRepository.create(fromTopArtistResponseItem(artistData))
     );
@@ -70,6 +74,7 @@ export function initMoodRoutes(router: Router) {
     } catch (err) {
       throw new Error(`Failed to save artists: ${(err as Error).message}`);
     }
+    ctx.logger.debug("after save artists");
     let savedMood: Mood;
     try {
       savedMood = await moodRepository.save({
@@ -81,6 +86,7 @@ export function initMoodRoutes(router: Router) {
     } catch (err) {
       throw new Error(`Failed to save mood: ${(err as Error).message}`);
     }
+    ctx.logger.debug("after save mood");
     ctx.body = savedMood;
     await next();
   });

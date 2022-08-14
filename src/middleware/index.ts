@@ -36,21 +36,37 @@ async function withCorrelationId(
   await next();
 }
 
+function debugMiddlewareStack(message: string) {
+  return async function (ctx: ExtendableContext & EnhancedContext, next: Next) {
+    ctx.logger.info(message);
+    await next();
+  };
+}
+
 export async function initializeMiddleware(
   app: Koa
 ): Promise<Koa<DefaultState, EnhancedContext>> {
   return (
     app
       .use(withCorrelationId)
-      .use(bodyParser())
+      .use(debugMiddlewareStack("after withCorrelationId"))
       .use(await withLogger(logger))
+      .use(debugMiddlewareStack("after logger"))
+      .use(bodyParser())
+      .use(debugMiddlewareStack("after bodyParser"))
       // eventBus depends on the logger
       .use(withEventBus)
+      .use(debugMiddlewareStack("after withEventBus"))
       // subsequent middleware can leverage the event bus
       .use(withSpotifyService)
+      .use(debugMiddlewareStack("after withSpotifyService"))
       .use(await withSqlService(logger))
+      .use(debugMiddlewareStack("after withSqlService"))
       .use(withDatastoreService)
+      .use(debugMiddlewareStack("after withDatastoreService"))
       .use(withJwtService)
+      .use(debugMiddlewareStack("after withJwtService"))
       .use(withSession)
+      .use(debugMiddlewareStack("after withSession"))
   );
 }

@@ -25,6 +25,7 @@ export const createServer = async (): Promise<Koa> => {
     try {
       await next();
     } catch (err) {
+      ctx.logger?.error("Error caught by middleware:", { error: err });
       ctx.status = (err as Error & { status: number }).status || 500;
       ctx.body = (err as Error).message;
       ctx.app.emit("error", err, ctx.logger);
@@ -35,13 +36,9 @@ export const createServer = async (): Promise<Koa> => {
 
   app.use(router.routes());
 
-  app.on("error", (err, ctx: Partial<EnhancedContext>) => {
-    if (ctx.logger?.error) {
-      ctx.logger?.error("Error caught by middleware", { error: err });
-    } else {
-      console.error("Error caught by middleware");
-      console.error(err);
-    }
+  app.on("error", (err) => {
+    console.error(`Error caught by error event handler: ${err.message}`);
+    console.error(`Error stack: ${err.stack}`);
   });
 
   return app;
