@@ -21,4 +21,17 @@ export class ArtistManager {
       },
     });
   }
+  async saveArtist(artist: Artist): Promise<Artist | null> {
+    await this.artistRepository
+      .createQueryBuilder("artists")
+      .insert()
+      .values([artist])
+      .orIgnore()
+      .execute();
+    return this.artistRepository.findOne({
+      where: {
+        spotifyId: artist.spotifyId,
+      },
+    });
+  }
 }

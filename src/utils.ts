@@ -28,7 +28,7 @@ export function asyncRetry<T, U extends unknown[]>(
   options?: {
     retries?: number;
     onFail?: (err: Error) => void;
-    thisArg: ThisType<unknown>;
+    thisArg?: ThisType<unknown> | null;
   }
 ): (...args: U) => Promise<T> {
   const errors: Error[] = [];
@@ -64,3 +64,22 @@ export function asyncRetry<T, U extends unknown[]>(
 }
 
 export const noop = () => null;
+
+interface SeenDeterminantMap {
+  [key: string | number]: true;
+}
+
+export function removeDupesFromArrayFrom<T>(
+  array: T[],
+  getDeterminant: (item: T) => string | number
+): T[] {
+  const seenDeterminantMap: SeenDeterminantMap = {};
+  return array.reduce((toReturn: T[], item: T) => {
+    const determinant = getDeterminant(item);
+    if (!seenDeterminantMap[determinant]) {
+      seenDeterminantMap[determinant] = true;
+      return [...toReturn, item];
+    }
+    return toReturn;
+  }, []);
+}

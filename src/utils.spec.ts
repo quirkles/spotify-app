@@ -1,4 +1,8 @@
-import { asyncRetry, getRandomSampleOfArray } from "./utils";
+import {
+  asyncRetry,
+  getRandomSampleOfArray,
+  removeDupesFromArrayFrom,
+} from "./utils";
 
 describe("utils", () => {
   describe("getRandomSampleOfArray", () => {
@@ -70,10 +74,25 @@ describe("utils", () => {
         }
         return Promise.resolve(x * y);
       };
-      const retry = asyncRetry(asyncMultiply, { retries: 5 });
+      const retry = asyncRetry(asyncMultiply, { retries: 5, thisArg: null });
 
       const result = await retry(8, 7);
       expect(result).toBe(56);
+    });
+  });
+  describe("removeDupesFromArrayFrom", () => {
+    it("removes based on the discriminator fn", () => {
+      const array = [
+        { id: "abc" },
+        { id: "123" },
+        { id: "zxy" },
+        { id: "abc" },
+      ];
+      expect(removeDupesFromArrayFrom(array, (item) => item.id)).toEqual([
+        { id: "abc" },
+        { id: "123" },
+        { id: "zxy" },
+      ]);
     });
   });
 });

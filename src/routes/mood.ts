@@ -4,6 +4,7 @@ import { UnauthorizedError } from "../errors";
 import { Artist, Mood } from "../services";
 import { fromTopArtistResponseItem } from "../services/spotify/transforms";
 import { getRandomElementFromArray, getRandomSampleOfArray } from "../utils";
+import { error } from "winston";
 
 export interface GetMoodsParams {
   limit?: number;
@@ -12,14 +13,18 @@ export interface GetMoodsParams {
   sortDirection?: "asc" | "desc";
 }
 
+export interface FetchSuggestionsForMoodParams {
+  limit?: number;
+}
+
 export function initMoodRoutes(router: Router) {
-  const defaultParams: GetMoodsParams = {
-    limit: 10,
-    includeArtists: true,
-    sortBy: "createdAt",
-    sortDirection: "desc",
-  };
   router.get("/mood", async function (ctx: EnhancedContext, next) {
+    const defaultParams: GetMoodsParams = {
+      limit: 10,
+      includeArtists: true,
+      sortBy: "createdAt",
+      sortDirection: "desc",
+    };
     const urlQueryParams: GetMoodsParams = ctx.request.query || {};
     const params = {
       ...defaultParams,
@@ -44,6 +49,57 @@ export function initMoodRoutes(router: Router) {
     ctx.body = { moods, params };
     await next();
   });
+
+  router.get(
+    "/mood/:moodId/suggestions",
+    async function (ctx: EnhancedContext, next) {
+      const defaultParams: GetMoodsParams = {
+        limit: 10,
+      };
+      const urlQueryParams: GetMoodsParams = ctx.request.query || {};
+      const params = {
+        ...defaultParams,
+        ...urlQueryParams,
+      };
+
+      ctx.logger.info("url params", { urlQueryParams });
+      ctx.logger.info("params", { params });
+
+      const moodRepository = ctx.sqlService.getRepository("Mood");
+
+      if (!ctx.user?.accessToken?.value?.length) {
+        throw new UnauthorizedError("You must be logged in");
+      }
+      const mood = await moodRepository.findOne({
+        relations: ["artists"],
+        where: {
+          createdBy: ctx.user?.userSpotifyId,
+          id: ctx.params["moodId"],
+        },
+      });
+
+      if (!mood) {
+        ctx.status = 404;
+        throw new Error("Failed to find mood");
+      }
+
+      const relatedArtists =
+        await ctx.spotifyService.getArtistRecommendationsFromMood({
+          mood,
+        });
+      ctx.body = {
+        artists: relatedArtists.map((relatedArtist) => ({
+          name: relatedArtist.name,
+          externalSpotifyUrl: relatedArtist.external_urls.spotify,
+          spotifyUri: relatedArtist.uri,
+          spotifyId: relatedArtist.id,
+          imageUrl: relatedArtist.images[0].url,
+        })),
+        params,
+      };
+      await next();
+    }
+  );
 
   router.post("/mood", async function (ctx: EnhancedContext, next) {
     ctx.logger.debug("start POST /mood");
@@ -90,6 +146,50 @@ export function initMoodRoutes(router: Router) {
     ctx.body = savedMood;
     await next();
   });
+
+  router.post(
+    "/mood/:moodId/artist",
+    async function (ctx: EnhancedContext, next) {
+      ctx.logger.debug("start POST /mood/:moodId/suggestions");
+      if (!ctx.user?.accessToken?.value?.length) {
+        throw new UnauthorizedError("You must be logged in");
+      }
+      ctx.logger.debug("begin load repos");
+      const moodRepository = ctx.sqlService.getRepository("Mood");
+      ctx.logger.debug("after load repos");
+      let artist: Artist | null;
+      try {
+        artist = await ctx.sqlService
+          .getManager("artist")
+          .saveArtist(ctx.request.body.artist);
+      } catch (err) {
+        throw new Error(`Failed to save artist: ${(err as Error).message}`);
+      }
+      if (!artist) {
+        throw new Error("Something went wrong saving the atist");
+      }
+      ctx.logger.debug("after save artist");
+      let mood: Mood | null;
+      try {
+        mood = await moodRepository.findOneOrFail({
+          relations: ["artists"],
+          where: {
+            id: ctx.request.body.moodId,
+          },
+        });
+      } catch (err) {
+        throw new Error(`Failed to save mood: ${(err as Error).message}`);
+      }
+      mood.artists.push(artist);
+      const savedMood = await moodRepository.save(mood);
+      ctx.logger.debug("after save mood");
+      ctx.body = {
+        mood: savedMood,
+        suggestionAdded: artist,
+      };
+      await next();
+    }
+  );
 
   router.patch("/mood/:moodId", async function (ctx: EnhancedContext, next) {
     const patchableMoodFields: (keyof Mood)[] = [
